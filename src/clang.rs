@@ -37,8 +37,16 @@ impl Cursor {
         };
 
         // Try to undo backend mangling
-        if cfg!(target_os = "macos") || cfg!(target_os = "windows") {
+        if cfg!(target_os = "macos") {
             mangling.remove(0);
+        } else if cfg!(target_os = "windows") {
+            // On windows, undo backend mangling only for gcc
+            // XXX(vlad) - we need to check the llvm target triple,
+            // not os config; we should be able to use a
+            // msys2/mingw-built bindgen to generate bindings for
+            // msvc.  But I'm not sure how to get the current llvm
+            // target triple.
+            //mangling.remove(0);
         }
         mangling
     }
