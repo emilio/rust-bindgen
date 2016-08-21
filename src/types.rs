@@ -472,6 +472,10 @@ pub struct CompInfo {
     /// This is useful if for some reason we can't generate
     /// the correct layout.
     pub opaque: bool,
+    /// The number of base classes that this struct or class have.
+    ///
+    /// They are stored in the `members` vector, so it's guaranteed that
+    /// `self.members.len() >= self.base_members`
     pub base_members: usize,
     layout: Layout,
     /// If this struct is explicitely marked as non-copiable.
