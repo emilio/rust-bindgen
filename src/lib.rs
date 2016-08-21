@@ -24,16 +24,16 @@ use syntax::print::pprust;
 use syntax::print::pp::eof;
 use syntax::ptr::P;
 
-use types::ModuleMap;
+// use types::ModuleMap;
 
-mod types;
+mod ir;
 mod clangll;
 mod clang;
-mod parser;
+// mod parser;
 mod hacks;
-mod gen {
-    include!(concat!(env!("OUT_DIR"), "/gen.rs"));
-}
+// mod gen {
+//     include!(concat!(env!("OUT_DIR"), "/gen.rs"));
+// }
 
 #[derive(Clone)]
 pub struct Builder<'a> {
@@ -235,14 +235,15 @@ impl Bindings {
 
         let span = span.unwrap_or(DUMMY_SP);
 
-        let module_map = try!(parse_headers(options, logger));
+        // let module_map = try!(parse_headers(options, logger));
 
         let module = ast::Mod {
             inner: span,
-            items: gen::gen_mods(&options.links[..],
-                                 module_map,
-                                 options.clone(),
-                                 span)
+            items: vec![],
+            // gen::gen_mods(&options.links[..],
+            //                      module_map,
+            //                      options.clone(),
+            //                      span)
         };
 
         Ok(Bindings {
@@ -298,44 +299,45 @@ impl Logger for DummyLogger {
     fn warn(&self, _msg: &str) { }
 }
 
-fn parse_headers(options: &BindgenOptions, logger: &Logger) -> Result<ModuleMap, ()> {
-    fn str_to_ikind(s: &str) -> Option<types::IKind> {
-        match s {
-            "uchar"     => Some(types::IUChar),
-            "schar"     => Some(types::ISChar),
-            "ushort"    => Some(types::IUShort),
-            "sshort"    => Some(types::IShort),
-            "uint"      => Some(types::IUInt),
-            "sint"      => Some(types::IInt),
-            "ulong"     => Some(types::IULong),
-            "slong"     => Some(types::ILong),
-            "ulonglong" => Some(types::IULongLong),
-            "slonglong" => Some(types::ILongLong),
-            _           => None,
-        }
-    }
-
-    // TODO: Unify most of these with BindgenOptions?
-    let clang_opts = parser::ClangParserOptions {
-        builtin_names: builtin_names(),
-        builtins: options.builtins,
-        match_pat: options.match_pat.clone(),
-        emit_ast: options.emit_ast,
-        class_constants: options.class_constants,
-        namespaced_constants: options.namespaced_constants,
-        ignore_functions: options.ignore_functions,
-        ignore_methods: options.ignore_methods,
-        fail_on_unknown_type: options.fail_on_unknown_type,
-        enable_cxx_namespaces: options.enable_cxx_namespaces,
-        override_enum_ty: str_to_ikind(&options.override_enum_ty),
-        clang_args: options.clang_args.clone(),
-        opaque_types: options.opaque_types.clone(),
-        blacklist_type: options.blacklist_type.clone(),
-        msvc_mangling: options.msvc_mangling,
-    };
-
-    parser::parse(clang_opts, logger)
-}
+// fn parse_headers(options: &BindgenOptions, logger: &Logger) -> Result<ModuleMap, ()> {
+//     fn str_to_ikind(s: &str) -> Option<ir::int::IntKind> {
+//         use ir::int::IntKind;
+//         match s {
+//             "uchar"     => Some(IntKind::UChar),
+//             "schar"     => Some(IntKind::Char),
+//             "ushort"    => Some(IntKind::UShort),
+//             "sshort"    => Some(IntKind::Short),
+//             "uint"      => Some(IntKind::UInt),
+//             "sint"      => Some(IntKind::Int),
+//             "ulong"     => Some(IntKind::ULong),
+//             "slong"     => Some(IntKind::Long),
+//             "ulonglong" => Some(IntKind::ULongLong),
+//             "slonglong" => Some(IntKind::LongLong),
+//             _           => None,
+//         }
+//     }
+//
+//     // TODO: Unify most of these with BindgenOptions?
+//     // let clang_opts = parser::ClangParserOptions {
+//     //     builtin_names: builtin_names(),
+//     //     builtins: options.builtins,
+//     //     match_pat: options.match_pat.clone(),
+//     //     emit_ast: options.emit_ast,
+//     //     class_constants: options.class_constants,
+//     //     namespaced_constants: options.namespaced_constants,
+//     //     ignore_functions: options.ignore_functions,
+//     //     ignore_methods: options.ignore_methods,
+//     //     fail_on_unknown_type: options.fail_on_unknown_type,
+//     //     enable_cxx_namespaces: options.enable_cxx_namespaces,
+//     //     override_enum_ty: str_to_ikind(&options.override_enum_ty),
+//     //     clang_args: options.clang_args.clone(),
+//     //     opaque_types: options.opaque_types.clone(),
+//     //     blacklist_type: options.blacklist_type.clone(),
+//     //     msvc_mangling: options.msvc_mangling,
+//     // };
+//
+//     // parser::parse(clang_opts, logger)
+// }
 
 fn builtin_names() -> HashSet<String> {
     let mut names = HashSet::new();

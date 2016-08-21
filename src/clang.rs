@@ -15,6 +15,12 @@ pub struct Cursor {
     x: CXCursor
 }
 
+impl fmt::Debug for Cursor {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "Cursor(0x{:x})", unsafe { ptr::read::<u32>(&self.x as *const CXCursor as *const _) })
+    }
+}
+
 pub type CursorVisitor<'s> = for<'a, 'b> FnMut(&'a Cursor, &'b Cursor) -> Enum_CXChildVisitResult + 's;
 
 impl Cursor {
