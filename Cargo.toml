@@ -16,6 +16,7 @@ quasi = { version = "0.15", features = ["with-syntex"] }
 clippy = { version = "*", optional = true }
 syntex_syntax = "0.38"
 log = "0.3.*"
+env_logger = "*"
 libc = "0.2.*"
 clang-sys = "0.8.0"
 

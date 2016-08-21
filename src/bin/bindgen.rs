@@ -2,6 +2,7 @@
 #![crate_type = "bin"]
 
 extern crate bindgen;
+extern crate env_logger;
 #[macro_use]
 extern crate log;
 extern crate clang_sys;
@@ -230,6 +231,13 @@ Options:
 }
 
 pub fn main() {
+    log::set_logger(|max_log_level| {
+        use env_logger::Logger;
+        let env_logger = Logger::new();
+        max_log_level.set(env_logger.filter());
+        Box::new(env_logger)
+    }).expect("Failed to set logger.");
+
     let mut bind_args: Vec<_> = env::args().collect();
     let bin = bind_args.remove(0);
 

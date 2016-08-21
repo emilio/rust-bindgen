@@ -24,15 +24,18 @@ use syntax::print::pprust;
 use syntax::print::pp::eof;
 use syntax::ptr::P;
 
-use types::ModuleMap;
+// use types::ModuleMap;
+use ir::context::BindgenContext;
+use parse::{ClangItemParser, ParseError};
 
-mod types;
 mod clangll;
 mod clang;
-mod parser;
+mod ir;
+mod parse;
+// mod parser;
 mod hacks;
-mod gen {
-    include!(concat!(env!("OUT_DIR"), "/gen.rs"));
+mod codegen {
+    include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 }
 
 #[derive(Clone)]
@@ -230,19 +233,21 @@ pub struct Bindings {
 impl Bindings {
     /// Deprecated - use a `Builder` instead
     pub fn generate(options: &BindgenOptions, logger: Option<&Logger>, span: Option<Span>) -> Result<Bindings, ()> {
+
         let l = DummyLogger;
         let logger = logger.unwrap_or(&l as &Logger);
 
         let span = span.unwrap_or(DUMMY_SP);
 
-        let module_map = try!(parse_headers(options, logger));
+        // let module_map = try!(parse_headers(options, logger));
+        let mut context = BindgenContext::new(&options.clang_args);
+        parse(options, &mut context);
+
+        println!("{:?}", context);
 
         let module = ast::Mod {
             inner: span,
-            items: gen::gen_mods(&options.links[..],
-                                 module_map,
-                                 options.clone(),
-                                 span)
+            items: codegen::codegen(&mut context),
         };
 
         Ok(Bindings {
@@ -298,44 +303,45 @@ impl Logger for DummyLogger {
     fn warn(&self, _msg: &str) { }
 }
 
-fn parse_headers(options: &BindgenOptions, logger: &Logger) -> Result<ModuleMap, ()> {
-    fn str_to_ikind(s: &str) -> Option<types::IKind> {
-        match s {
-            "uchar"     => Some(types::IUChar),
-            "schar"     => Some(types::ISChar),
-            "ushort"    => Some(types::IUShort),
-            "sshort"    => Some(types::IShort),
-            "uint"      => Some(types::IUInt),
-            "sint"      => Some(types::IInt),
-            "ulong"     => Some(types::IULong),
-            "slong"     => Some(types::ILong),
-            "ulonglong" => Some(types::IULongLong),
-            "slonglong" => Some(types::ILongLong),
-            _           => None,
-        }
-    }
-
-    // TODO: Unify most of these with BindgenOptions?
-    let clang_opts = parser::ClangParserOptions {
-        builtin_names: builtin_names(),
-        builtins: options.builtins,
-        match_pat: options.match_pat.clone(),
-        emit_ast: options.emit_ast,
-        class_constants: options.class_constants,
-        namespaced_constants: options.namespaced_constants,
-        ignore_functions: options.ignore_functions,
-        ignore_methods: options.ignore_methods,
-        fail_on_unknown_type: options.fail_on_unknown_type,
-        enable_cxx_namespaces: options.enable_cxx_namespaces,
-        override_enum_ty: str_to_ikind(&options.override_enum_ty),
-        clang_args: options.clang_args.clone(),
-        opaque_types: options.opaque_types.clone(),
-        blacklist_type: options.blacklist_type.clone(),
-        msvc_mangling: options.msvc_mangling,
-    };
-
-    parser::parse(clang_opts, logger)
-}
+// fn parse_headers(options: &BindgenOptions, logger: &Logger) -> Result<(), ()> {
+//     fn str_to_ikind(s: &str) -> Option<ir::int::IntKind> {
+//         use ir::int::IntKind;
+//         match s {
+//             "uchar"     => Some(IntKind::UChar),
+//             "schar"     => Some(IntKind::Char),
+//             "ushort"    => Some(IntKind::UShort),
+//             "sshort"    => Some(IntKind::Short),
+//             "uint"      => Some(IntKind::UInt),
+//             "sint"      => Some(IntKind::Int),
+//             "ulong"     => Some(IntKind::ULong),
+//             "slong"     => Some(IntKind::Long),
+//             "ulonglong" => Some(IntKind::ULongLong),
+//             "slonglong" => Some(IntKind::LongLong),
+//             _           => None,
+//         }
+//     }
+//
+//     // TODO: Unify most of these with BindgenOptions?
+//     // let clang_opts = parser::ClangParserOptions {
+//     //     builtin_names: builtin_names(),
+//     //     builtins: options.builtins,
+//     //     match_pat: options.match_pat.clone(),
+//     //     emit_ast: options.emit_ast,
+//     //     class_constants: options.class_constants,
+//     //     namespaced_constants: options.namespaced_constants,
+//     //     ignore_functions: options.ignore_functions,
+//     //     ignore_methods: options.ignore_methods,
+//     //     fail_on_unknown_type: options.fail_on_unknown_type,
+//     //     enable_cxx_namespaces: options.enable_cxx_namespaces,
+//     //     override_enum_ty: str_to_ikind(&options.override_enum_ty),
+//     //     clang_args: options.clang_args.clone(),
+//     //     opaque_types: options.opaque_types.clone(),
+//     //     blacklist_type: options.blacklist_type.clone(),
+//     //     msvc_mangling: options.msvc_mangling,
+//     // };
+//
+//     // parser::parse(clang_opts, logger)
+// }
 
 fn builtin_names() -> HashSet<String> {
     let mut names = HashSet::new();
@@ -364,4 +370,29 @@ fn builder_state() {
     assert!(build.logger.is_some());
     assert!(build.options.clang_args.binary_search(&"example.h".to_owned()).is_ok());
     assert!(build.options.links.binary_search(&("m".to_owned(), LinkType::Static)).is_ok());
+}
+
+fn parse(options: &BindgenOptions, context: &mut BindgenContext) {
+    use ir::item::Item;
+    use clangll::*;
+    use clang::Diagnostic;
+
+    for d in context.translation_unit().diags().iter() {
+        let msg = d.format(Diagnostic::default_opts());
+        let is_err = d.severity() >= CXDiagnostic_Error;
+        println!("{}, err: {}", msg, is_err);
+    }
+
+    let cursor = context.translation_unit().cursor();
+    cursor.visit(|cur, _| clang::ast_dump(cur, 0));
+
+    cursor.visit(|cursor, other| {
+        match Item::parse(*cursor, None, context) {
+            Ok(item_id) => {
+                CXChildVisit_Continue
+            }
+            Err(ParseError::Continue) => CXChildVisit_Continue,
+            Err(ParseError::Recurse) => CXChildVisit_Recurse,
+        }
+    });
 }

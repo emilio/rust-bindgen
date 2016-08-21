@@ -989,9 +989,9 @@ fn cstruct_to_rs(ctx: &mut GenCtx, name: &str, ci: CompInfo,
             });
         }
 
-        // FIXME: rustc actually generates tons of warnings
-        // due to an empty repr(C) type, so we just generate
-        // a dummy field with pointer-alignment to supress it.
+        // FIXME: rustc actually generates tons of warnings due to an empty
+        // repr(C) type, so we just generate a dummy field with pointer
+        // alignment to supress it.
         if vffields.is_empty() {
             vffields.push(mk_blob_field(ctx, "_bindgen_empty_ctype_warning_fix",
                                         &Layout::new(::std::mem::size_of::<*mut ()>(), ::std::mem::align_of::<*mut ()>())));

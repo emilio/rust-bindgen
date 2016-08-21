@@ -1012,20 +1012,23 @@ fn visit_composite(cursor: &Cursor, parent: &Cursor,
                 return false;
             }
 
-            let mut sig = mk_fn_sig_resolving_typedefs(ctx, &cursor.cur_type(), cursor, &ci.typedefs);
+            let mut sig = mk_fn_sig_resolving_typedefs(ctx, &cursor.cur_type(),
+                                                       cursor, &ci.typedefs);
             if !cursor.method_is_static() {
                 // XXX what have i done
                 if cursor.method_is_virtual() {
                     sig.args.insert(0, ("this".to_string(),TPtr(Box::new(TVoid), cursor.cur_type().is_const(), false, Layout::zero())));
                 } else {
-                    // XXX This is weak and doesn't work if names are mangled further, but...
-                    // We can't have access to the current Rc from here, so we can't pass the type
-                    // here.
+                    // XXX This is weak and doesn't work if names are mangled
+                    // further, but...
+                    //
+                    // We can't have access to the current Rc from here, so we
+                    // can't pass the type here.
                     //
                     // Also, it would form an rc cycle.
                     //
-                    // Possibly marking the "this" attribute with TOther or a similar marked value
-                    // would be a better choice.
+                    // Possibly marking the "this" attribute with TOther or a
+                    // similar marked value would be a better choice.
                     sig.args.insert(0, ("this".to_string(),
                                         TPtr(Box::new(TNamed(Rc::new(RefCell::new(TypeInfo::new(ci.name.clone(), ctx.current_module_id, TVoid, Layout::zero()))))), cursor.cur_type().is_const(), false, Layout::zero())));
                 }
@@ -1037,7 +1040,10 @@ fn visit_composite(cursor: &Cursor, parent: &Cursor,
                 return CXChildVisit_Continue;
             }
 
-            let mut vi = VarInfo::new(spelling, cursor_link_name(ctx, &cursor), cursor.raw_comment(), sig);
+            let mut vi = VarInfo::new(spelling,
+                                      cursor_link_name(ctx, &cursor),
+                                      cursor.raw_comment(), sig);
+
             vi.is_static = cursor.method_is_static();
             vi.is_const = cursor.cur_type().is_const();
 
