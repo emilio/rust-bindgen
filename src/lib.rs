@@ -25,10 +25,13 @@ use syntax::print::pp::eof;
 use syntax::ptr::P;
 
 // use types::ModuleMap;
+use ir::context::BindgenContext;
+use parse::ClangItemParser;
 
 mod ir;
 mod clangll;
 mod clang;
+mod parse;
 // mod parser;
 mod hacks;
 // mod gen {
@@ -230,12 +233,18 @@ pub struct Bindings {
 impl Bindings {
     /// Deprecated - use a `Builder` instead
     pub fn generate(options: &BindgenOptions, logger: Option<&Logger>, span: Option<Span>) -> Result<Bindings, ()> {
+
         let l = DummyLogger;
         let logger = logger.unwrap_or(&l as &Logger);
 
         let span = span.unwrap_or(DUMMY_SP);
 
         // let module_map = try!(parse_headers(options, logger));
+        let mut context = BindgenContext::new();
+        parse(options, &mut context);
+
+        println!("{:?}", context);
+        panic!("I'm done");
 
         let module = ast::Mod {
             inner: span,
@@ -245,11 +254,6 @@ impl Bindings {
             //                      options.clone(),
             //                      span)
         };
-
-        Ok(Bindings {
-            module: module,
-            raw_lines: options.raw_lines.clone(),
-        })
     }
 
     pub fn into_ast(self) -> Vec<P<ast::Item>> {
@@ -299,7 +303,7 @@ impl Logger for DummyLogger {
     fn warn(&self, _msg: &str) { }
 }
 
-// fn parse_headers(options: &BindgenOptions, logger: &Logger) -> Result<ModuleMap, ()> {
+// fn parse_headers(options: &BindgenOptions, logger: &Logger) -> Result<(), ()> {
 //     fn str_to_ikind(s: &str) -> Option<ir::int::IntKind> {
 //         use ir::int::IntKind;
 //         match s {
@@ -366,4 +370,41 @@ fn builder_state() {
     assert!(build.logger.is_some());
     assert!(build.options.clang_args.binary_search(&"example.h".to_owned()).is_ok());
     assert!(build.options.links.binary_search(&("m".to_owned(), LinkType::Static)).is_ok());
+}
+
+fn parse(options: &BindgenOptions, context: &mut BindgenContext) {
+    use clangll::*;
+    use clang::{Cursor, Diagnostic};
+    use ir::item::Item;
+    let ix = clang::Index::create(false, true);
+    if ix.is_null() {
+        panic!("Clang failed to create index");
+        return
+    }
+
+    let unit = clang::TranslationUnit::parse(&ix, "", &options.clang_args,
+                                      &[], CXTranslationUnit_DetailedPreprocessingRecord);
+    if unit.is_null() {
+        panic!("No input files given");
+        return
+    }
+
+    let diags = unit.diags();
+    for d in &diags {
+        let msg = d.format(Diagnostic::default_opts());
+        let is_err = d.severity() >= CXDiagnostic_Error;
+        println!("{}, err: {}", msg, is_err);
+    }
+
+    let cursor = unit.cursor();
+
+    cursor.visit(|cursor, other| {
+        if let Some(result) = Item::parse(*cursor, context) {
+            println!("parsed: {:?}", result);
+        }
+        CXChildVisit_Continue
+    });
+
+    unit.dispose();
+    ix.dispose();
 }

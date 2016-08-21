@@ -25,21 +25,4 @@ impl IntKind {
             Long | LongLong => false,
         }
     }
-
-    pub fn each<F>(mut cb: F)
-        where F: FnMut(Self) -> (),
-    {
-        use self::IntKind::*;
-        cb(Bool);
-        cb(Char);
-        cb(UChar);
-        cb(Short);
-        cb(UShort);
-        cb(Int);
-        cb(UInt);
-        cb(Long);
-        cb(ULong);
-        cb(LongLong);
-        cb(ULongLong);
-    }
 }

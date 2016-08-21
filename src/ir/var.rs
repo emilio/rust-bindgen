@@ -1,7 +1,7 @@
 use super::item::ItemId;
 
-#[derive(Clone, PartialEq)]
-pub struct VarInfo {
+#[derive(Debug)]
+pub struct Var {
     /// The name of the variable.
     name: String,
     /// The mangled name of the variable.
@@ -17,14 +17,14 @@ pub struct VarInfo {
     is_static: bool,
 }
 
-impl VarInfo {
+impl Var {
     pub fn new(name: String,
                mangled: Option<String>,
                ty: ItemId,
                val: Option<i64>,
                is_const: bool,
-               is_static: bool) -> VarInfo {
-        VarInfo {
+               is_static: bool) -> Var {
+        Var {
             name: name,
             mangled_name: mangled,
             ty: ty,

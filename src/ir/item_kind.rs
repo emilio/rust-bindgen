@@ -1,6 +1,7 @@
 use super::function::Function;
 use super::module::Module;
 use super::ty::Type;
+use super::var::Var;
 
 /// A item we parse and translate.
 #[derive(Debug)]
@@ -14,6 +15,8 @@ pub enum ItemKind {
 
     /// A function declaration.
     Function(Function),
+    /// A variable declaration, most likely a static.
+    Var(Var),
 }
 
 impl ItemKind {
@@ -60,5 +63,20 @@ impl ItemKind {
 
     pub fn expect_type(&self) -> &Type {
         self.as_type().expect("Not a type")
+    }
+
+    pub fn as_var(&self) -> Option<&Var> {
+        match *self {
+            ItemKind::Var(ref v) => Some(v),
+            _ => None,
+        }
+    }
+
+    pub fn is_var(&self) -> bool {
+        self.as_var().is_some()
+    }
+
+    pub fn expect_var(&self) -> &Var {
+        self.as_var().expect("Not a var")
     }
 }

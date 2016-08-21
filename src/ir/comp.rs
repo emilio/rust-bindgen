@@ -1,7 +1,10 @@
 use super::context::TypeResolver;
 use super::layout::Layout;
-use super::item::ItemId;
+use super::item::{Item, ItemId};
+use super::context::BindgenContext;
 use std::cell::Cell;
+use parse::{ClangItemParser, ClangSubItemParser};
+use clang;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum CompKind {
@@ -236,5 +239,58 @@ impl CompInfo {
 
         Some(Layout::new(max_size, max_align))
     }
+}
 
+impl ClangSubItemParser for CompInfo {
+    fn parse(cursor: clang::Cursor, ctx: &mut BindgenContext) -> Option<Self> {
+        use clangll::*;
+
+        let ty = cursor.cur_type();
+        debug_assert!(ty.kind() != CXType_Invalid);
+
+        let kind = match cursor.kind() {
+            CXCursor_UnionDecl => CompKind::Union,
+            CXCursor_ClassTemplate => {
+                match cursor.template_kind() {
+                    CXCursor_UnionDecl => CompKind::Union,
+                    _ => CompKind::Struct,
+                }
+            }
+            _ => CompKind::Struct,
+        };
+
+        let mut has_non_type_template_params = false;
+        let args = match ty.num_template_args() {
+            // In forward declarations, etc, they are in the ast... sigh
+            -1 => {
+                let mut args = vec![];
+                cursor.visit(|c, _| {
+                    if c.kind() == CXCursor_TemplateTypeParameter {
+                        // args.push(conv_template_type_parameter(ctx, c));
+                    }
+                    CXChildVisit_Continue
+                });
+                args
+            }
+            len => {
+                let mut list = Vec::with_capacity(len as usize);
+                for i in 0..len {
+                    let arg_type = ty.template_arg_type(i);
+                    if arg_type.kind() != CXType_Invalid {
+                        let type_id = Item::from_ty(&arg_type, ctx)
+                                            .expect("Type not found in template specialization");
+                        list.push(type_id);
+                    } else {
+                        has_non_type_template_params = true;
+                        warn!("warning: Template parameter is not a type");
+                    }
+                }
+
+                list
+            }
+        };
+
+        // TODO
+        None
+    }
 }

@@ -1,5 +1,9 @@
-use super::item::ItemId;
+use super::item::{Item, ItemId};
+use super::context::BindgenContext;
 use syntax::abi;
+use clang;
+use clangll::Enum_CXCallingConv;
+use parse::ClangItemParser;
 
 /// A function declaration , with a signature, arguments, and argument names.
 ///
@@ -40,11 +44,24 @@ pub struct FunctionSig {
     abi: abi::Abi,
 }
 
+fn get_abi(cc: Enum_CXCallingConv) -> abi::Abi {
+    use clangll::*;
+    match cc {
+        CXCallingConv_Default => abi::Abi::C,
+        CXCallingConv_C => abi::Abi::C,
+        CXCallingConv_X86StdCall => abi::Abi::Stdcall,
+        CXCallingConv_X86FastCall => abi::Abi::Fastcall,
+        CXCallingConv_AAPCS => abi::Abi::Aapcs,
+        CXCallingConv_X86_64Win64 => abi::Abi::Win64,
+        other => panic!("unsupported calling convention: {}", other),
+    }
+}
+
+
 impl FunctionSig {
     pub fn new(return_type: ItemId,
                argument_types: Vec<ItemId>,
                is_variadic: bool,
-               is_safe: bool,
                abi: abi::Abi) -> Self {
         FunctionSig {
             return_type: return_type,
@@ -53,5 +70,30 @@ impl FunctionSig {
             is_safe: false,
             abi: abi,
         }
+    }
+
+    pub fn from_ty(ty: &clang::Type,
+                 cursor: &clang::Cursor,
+                 ctx: &mut BindgenContext) -> Option<Self> {
+        use clangll::*;
+        let args: Vec<_> = match cursor.kind() {
+            CXCursor_FunctionDecl | CXCursor_CXXMethod => {
+                // For CXCursor_FunctionDecl, cursor.args() is the reliable way to
+                // get parameter names and types.
+                cursor.args().iter().map(|arg| {
+                    let arg_ty = arg.cur_type();
+                    Item::from_ty(&arg_ty, ctx)
+                            .expect("Unable to resolve argument type")
+                }).collect()
+            }
+            // TODO: Old parser fell back to walk the ast.
+            _ => return None,
+        };
+
+        // TODO: gracefully return error here.
+        let ret = Item::from_ty(&ty.ret_type(), ctx).expect("No return type");
+        let abi = get_abi(ty.call_conv());
+
+        Some(Self::new(ret, args, ty.is_variadic(), abi))
     }
 }

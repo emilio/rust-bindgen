@@ -1,5 +1,9 @@
+use super::context::BindgenContext;
 use super::item_kind::ItemKind;
+use super::ty::Type;
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
+use parse::{ClangItemParser, ClangSubItemParser, ParseError};
+use clang;
 
 /// A single identifier for an item.
 ///
@@ -55,5 +59,65 @@ impl Item {
 
     pub fn kind(&self) -> &ItemKind {
         &self.kind
+    }
+}
+
+impl ClangItemParser for Item {
+    fn parse(cursor: clang::Cursor, context: &mut BindgenContext) -> Result<ItemId, ParseError> {
+        use ir::function::Function;
+        use ir::module::Module;
+        use ir::ty::Type;
+        use ir::var::Var;
+
+        let cursor = cursor.canonical();
+        let comment = cursor.raw_comment();
+        let comment = if comment.is_empty() { None } else { Some(comment) };
+        let current_module = context.current_module();
+
+        macro_rules! try_parse {
+            ($what:ident, $decl:expr) => {
+                match $what::parse(cursor, context) {
+                    Ok(item) => {
+                        let id = ItemId::next();
+                        context.add_item(Item::new(id, comment, id,
+                                                   ItemKind::$what(item)),
+                                         $decl);
+                        return Ok(id);
+                    }
+                    Err(ParseError::Recurse) => return Err(ParseError::Recurse),
+                    Err(ParseError::Continue) => {},
+                }
+            }
+        }
+
+        try_parse!(Module, None);
+        try_parse!(Type, Some(cursor));
+        try_parse!(Function, None);
+        try_parse!(Var, None);
+
+        warn!("Unhandled cursor kind: {}", ::clang::kind_to_str(cursor.kind()));
+        Err(ParseError::Continue)
+    }
+
+    fn from_ty(ty: &clang::Type, context: &mut BindgenContext) -> Option<ItemId> {
+        use ir::ty::TypeResult;
+        let comment = ty.declaration().raw_comment();
+        let comment = if comment.is_empty() { None } else { Some(comment) };
+        if let Some(ty) = Type::from_clang_ty(ty, context) {
+            let current_module = context.current_module();
+            match ty {
+                TypeResult::AlreadyResolved(item_id) => return Some(item_id),
+                TypeResult::New(item, declaration) => {
+                    let id = ItemId::next();
+                    context.add_item(Item::new(id, comment,
+                                               current_module,
+                                               ItemKind::Type(item)),
+                                     Some(declaration));
+                    return Some(id);
+                }
+            }
+        }
+
+        None
     }
 }

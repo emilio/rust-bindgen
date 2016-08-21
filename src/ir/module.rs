@@ -1,4 +1,7 @@
+use super::context::BindgenContext;
 use super::item::ItemId;
+use clang;
+use parse::{ClangItemParser, ClangSubItemParser, ParseError};
 
 /// A module, as in, a C++ namespace.
 #[derive(Clone, Debug)]
@@ -27,5 +30,31 @@ impl Module {
 
     pub fn parent(&self) -> Option<ItemId> {
         self.parent_id
+    }
+}
+
+impl ClangSubItemParser for Module {
+    fn parse(cursor: clang::Cursor, ctx: &mut BindgenContext) -> Result<Self, ParseError> {
+        use clangll::*;
+        match cursor.kind() {
+            CXCursor_Namespace => {
+                // let namespace_name = match ctx.current_translation_unit().tokens(cursor) {
+                //     None => None,
+                //     Some(tokens) => {
+                //         if tokens.len() <= 1 {
+                //             None
+                //         } else {
+                //             match &*tokens[1].spelling {
+                //                 "{" => None,
+                //                 s => Some(s.to_owned()),
+                //             }
+                //         }
+                //     }
+                // };
+                // TODO
+                return Err(ParseError::Recurse)
+            }
+            _ => Err(ParseError::Continue)
+        }
     }
 }

@@ -428,7 +428,7 @@ pub const CXCallingConv_X86_64SysV: c_uint = 11;
 pub const CXCallingConv_Invalid: c_uint = 100;
 pub const CXCallingConv_Unexposed: c_uint = 200;
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Hash)]
 pub struct CXType {
     pub kind: Enum_CXTypeKind,
     pub data: [*mut c_void; 2],

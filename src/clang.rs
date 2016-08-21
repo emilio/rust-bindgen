@@ -299,6 +299,7 @@ impl Hash for Cursor {
 }
 
 // type
+#[derive(Clone, Hash)]
 pub struct Type {
     x: CXType
 }
@@ -382,6 +383,24 @@ impl Type {
         } else {
             Ok(val as usize)
         }
+    }
+
+    pub fn fallible_align(&self) -> Result<usize, LayoutError> {
+        unsafe {
+            let val = clang_Type_getAlignOf(self.x);
+            if val < 0 {
+                Err(LayoutError::from(val as i32))
+            } else {
+                Ok(val as usize)
+            }
+        }
+    }
+
+    pub fn fallible_layout(&self) -> Result<::ir::layout::Layout, LayoutError> {
+        use ir::layout::Layout;
+        let size = try!(self.fallible_size());
+        let align = try!(self.fallible_align());
+        Ok(Layout::new(size, align))
     }
 
     pub fn align(&self) -> usize {
