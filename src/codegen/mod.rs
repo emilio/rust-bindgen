@@ -9,6 +9,7 @@ use ir::item_kind::ItemKind;
 use ir::comp::{CompKind, CompInfo, Method};
 use ir::layout::Layout;
 
+use std::ops;
 use std::collections::hash_map::{HashMap, Entry};
 
 use syntax::abi::Abi;
@@ -42,6 +43,38 @@ macro_rules! link_name {
     ($name:expr) => {{
         aster::AstBuilder::new().attr().name_value("link_name").str($name)
     }}
+}
+
+struct CodegenResult {
+    items: Vec<P<ast::Item>>,
+    saw_union: bool,
+}
+
+impl CodegenResult {
+    fn new() -> Self {
+        CodegenResult {
+            items: vec![],
+            saw_union: false,
+        }
+    }
+
+    fn saw_union(&mut self) {
+        self.saw_union = true;
+    }
+}
+
+impl ops::Deref for CodegenResult {
+    type Target = Vec<P<ast::Item>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.items
+    }
+}
+
+impl ops::DerefMut for CodegenResult {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.items
+    }
 }
 
 struct ForeignModBuilder {
@@ -242,7 +275,7 @@ trait CodeGenerator {
 
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                extra: &Self::Extra);
 }
 
@@ -251,7 +284,7 @@ impl CodeGenerator for Item {
 
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                _extra: &()) {
         match *self.kind() {
             ItemKind::Module(..) => { /* TODO */ },
@@ -272,7 +305,7 @@ impl CodeGenerator for Var {
     type Extra = Item;
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                item: &Item) {
         let name = item.canonical_name(ctx);
         let ty = self.ty().to_rust_ty(ctx);
@@ -312,7 +345,7 @@ impl CodeGenerator for Type {
 
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                item: &Item) {
         match *self.kind() {
             TypeKind::Void |
@@ -382,7 +415,7 @@ impl<'a> CodeGenerator for Vtable<'a> {
 
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                item: &Item) {
         assert_eq!(item.id(), self.item_id);
         // For now, generate an empty struct, later we should generate function
@@ -406,7 +439,7 @@ impl CodeGenerator for CompInfo {
 
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                item: &Item) {
         use aster::struct_field::StructFieldBuilder;
         // Don't output classes with template parameters that aren't types, and
@@ -460,6 +493,11 @@ impl CodeGenerator for CompInfo {
             fields.push(field);
         }
 
+        let is_union = self.kind() == CompKind::Union;
+        if is_union {
+            result.saw_union();
+        }
+
         for field in self.fields() {
             if let Some(_width) = field.bitfield() {
                 // TODO: Compute bitfields.
@@ -473,15 +511,33 @@ impl CodeGenerator for CompInfo {
                 }
             }
 
-            let ty = field.ty().to_rust_ty(ctx);
-            let mut attrs = vec![];
-            if let Some(comment) = field.comment() {
-                attrs.push(doc!(comment));
-            }
+            if !is_union {
+                let ty = field.ty().to_rust_ty(ctx);
 
-            let field = StructFieldBuilder::named(field.name()).pub_()
-                                    .with_attrs(attrs)
-                                    .build_ty(ty);
+                let ty = if is_union {
+                    quote_ty!(ctx.ext_cx(), __BindgenUnionField<$ty>)
+                } else {
+                    ty
+                };
+
+                let mut attrs = vec![];
+                if let Some(comment) = field.comment() {
+                    attrs.push(doc!(comment));
+                }
+
+                let field = StructFieldBuilder::named(field.name()).pub_()
+                                        .with_attrs(attrs)
+                                        .build_ty(ty);
+                fields.push(field);
+            }
+        }
+
+        if is_union {
+            let layout = item.kind().expect_type().layout(ctx)
+                             .expect("Unable to get layout information?");
+            let ty = BlobTyBuilder::new(layout).build();
+            let field = StructFieldBuilder::named("bindgen_union_field").pub_()
+                             .build_ty(ty);
             fields.push(field);
         }
 
@@ -536,7 +592,7 @@ impl CodeGenerator for Enum {
 
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                item: &Item) {
         use ir::enum_ty::EnumVariantValue;
 
@@ -831,7 +887,7 @@ impl CodeGenerator for Function {
 
     fn codegen(&self,
                ctx: &BindgenContext,
-               result: &mut Vec<P<ast::Item>>,
+               result: &mut CodegenResult,
                item: &Item) {
         let signature_item = ctx.resolve_item(self.signature());
         let signature = signature_item.kind().expect_type();
