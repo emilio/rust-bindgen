@@ -104,6 +104,10 @@ impl FunctionSig {
         use clangll::*;
         debug!("FunctionSig::from_ty {:?} {:?}", ty, cursor);
 
+        if cursor.is_inlined_function() && !ctx.options().keep_inline_functions {
+            return Err(ParseError::Continue);
+        }
+
         // Don't parse operatorxx functions in C++
         let spelling = cursor.spelling();
         if spelling.starts_with("operator") {
@@ -115,6 +119,7 @@ impl FunctionSig {
         } else {
             ty.declaration()
         };
+
         let mut args: Vec<_> = match cursor.kind() {
             CXCursor_FunctionDecl |
             CXCursor_CXXMethod => {
