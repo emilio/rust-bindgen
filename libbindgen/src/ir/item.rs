@@ -194,6 +194,7 @@ pub struct Item {
 
     /// A doc comment over the item, if any.
     comment: Option<String>,
+
     /// Annotations extracted from the doc comment, or the default ones
     /// otherwise.
     annotations: Annotations,
