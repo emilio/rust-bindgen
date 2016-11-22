@@ -532,6 +532,14 @@ impl Item {
         self.as_type().map_or(false, |ty| ty.is_type_ref())
     }
 
+    /// Is this item a var type?
+    pub fn is_var(&self) -> bool {
+        match *self.kind() {
+            ItemKind::Var(..) => true,
+            _ => false,
+        }
+    }
+
     /// Get the target item id for name generation.
     fn name_target(&self,
                    ctx: &BindgenContext,
@@ -663,6 +671,12 @@ impl Item {
                                within_namespace: bool,
                                for_name_checking: bool)
                                -> String {
+        if !for_name_checking {
+            if let Some(other_canon_type) = self.annotations.use_instead_of() {
+                return other_canon_type.to_owned();
+            }
+        }
+
         let target = ctx.resolve_item(self.name_target(ctx, for_name_checking));
         let base_name = target.base_name(ctx, for_name_checking);
 
@@ -1135,9 +1149,6 @@ impl ItemCanonicalName for Item {
     fn canonical_name(&self, ctx: &BindgenContext) -> String {
         debug_assert!(ctx.in_codegen_phase(),
                       "You're not supposed to call this yet");
-        if let Some(other_canon_type) = self.annotations.use_instead_of() {
-            return other_canon_type.to_owned();
-        }
         if self.canonical_name_cache.borrow().is_none() {
             *self.canonical_name_cache.borrow_mut() =
                 Some(self.real_canonical_name(ctx,
