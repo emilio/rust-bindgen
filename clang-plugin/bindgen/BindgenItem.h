@@ -28,10 +28,16 @@ protected:
     : m_id(id), m_parent(parent), m_comment(comment) {}
 
 public:
-  static std::unique_ptr<Item> create(BindgenContext&, const clang::Decl&);
+  static ItemId findParent(const clang::Decl& decl);
+
+  static bool create(BindgenContext&, const clang::Decl&, ItemId& out);
 
   ItemId id() const {
     return m_id;
+  }
+
+  ItemId parent() const {
+    return m_parent;
   }
 
   virtual Var* asVar() {
@@ -45,21 +51,6 @@ public:
   }
   virtual Function* asFunction() {
     return nullptr;
-  }
-};
-
-class Type : public Item {
-  std::string m_name;
-
-protected:
-  Type(ItemId id, ItemId parent, std::string comment, std::string name)
-    : Item(id, parent, comment), m_name(name) {}
-
-public:
-  static ItemId fromClangTy(BindgenContext&, const clang::Type&);
-
-  virtual Type* asType() override {
-    return this;
   }
 };
 
@@ -78,80 +69,7 @@ public:
 
 struct RecordField {
   std::string m_name;
-  bool m_isConst;
   ItemId m_type;
-};
-
-enum class IntKind : uint8_t {
-  Bool,
-  Char,
-  UChar,
-  Short,
-  UShort,
-  Int,
-  UInt,
-  Long,
-  ULong,
-  LongLong,
-  ULongLong,
-  I8,
-  U8,
-  I16,
-  U16,
-  I32,
-  U32,
-  I64,
-  U64,
-  I128,
-  U128,
-};
-
-class IntegerType : public Type {
-  IntKind m_kind;
-
-public:
-  IntegerType(ItemId id,
-              ItemId parent,
-              std::string comment,
-              std::string name,
-              IntKind kind)
-    : Type(id, parent, comment, name), m_kind(kind) {}
-
-  bool isSigned() const {
-    switch (m_kind) {
-      case IntKind::Bool:
-      case IntKind::UChar:
-      case IntKind::UShort:
-      case IntKind::UInt:
-      case IntKind::ULong:
-      case IntKind::ULongLong:
-      case IntKind::U8:
-      case IntKind::U16:
-      case IntKind::U32:
-      case IntKind::U64:
-      case IntKind::U128:
-        return false;
-      case IntKind::Char:
-      case IntKind::Short:
-      case IntKind::Int:
-      case IntKind::Long:
-      case IntKind::LongLong:
-      case IntKind::I8:
-      case IntKind::I16:
-      case IntKind::I32:
-      case IntKind::I64:
-      case IntKind::I128:
-        return true;
-    }
-  }
-};
-
-class Record : public Type {
-  std::vector<RecordField> m_fields;
-
-public:
-  static std::unique_ptr<Record> create(BindgenContext&,
-                                        const clang::RecordDecl&);
 };
 
 }  // namespace bindgen

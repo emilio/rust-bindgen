@@ -19,6 +19,7 @@ add_library(bindgen OBJECT
   bindgen/BindgenAnnotations.cc
   bindgen/BindgenContext.cc
   bindgen/BindgenItem.cc
+  bindgen/BindgenType.cc
   bindgen/RustBindgen.cc
 )
 

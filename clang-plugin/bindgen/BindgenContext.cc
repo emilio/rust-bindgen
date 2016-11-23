@@ -1,5 +1,6 @@
 #include "BindgenContext.h"
 #include "BindgenItem.h"
+#include "BindgenType.h"
 
 #include "clang/AST/AST.h"
 
@@ -56,6 +57,12 @@ BindgenContext::BindgenContext(clang::ASTContext& ctx,
   registerBuiltins();
 }
 
+void BindgenContext::addItem(std::unique_ptr<Item> item) {
+  assert(item);
+  assert(m_items.find(item->id()) == m_items.end());
+  m_items.insert(std::make_pair(item->id(), std::move(item)));
+}
+
 void BindgenContext::registerBuiltins() {
 #define BUILTIN_INTEGER(name_, kind_)                                          \
   m_items.insert(std::make_pair(                                               \
@@ -84,7 +91,13 @@ ItemId BindgenContext::registerType(const clang::Type& type) {
   return id;
 }
 
-bool BindgenContext::getRegisteredType(clang::Type& ty, ItemId& out) {
+Item& BindgenContext::getItem(ItemId id) {
+  auto it = m_items.find(id);
+  assert(it != m_items.end());
+  return *it->second;
+}
+
+bool BindgenContext::getRegisteredType(const clang::Type& ty, ItemId& out) const {
   auto it = m_registeredTypes.find(&ty);
   if (it == m_registeredTypes.end())
     return false;
@@ -92,7 +105,20 @@ bool BindgenContext::getRegisteredType(clang::Type& ty, ItemId& out) {
   return true;
 }
 
-bool BindgenContext::getBuiltinOrRegisteredTy(clang::Type& type, ItemId& out) {
+ItemId BindgenContext::maybeBuildWrapperForQualTy(ItemId wrapping, clang::QualType ty) {
+  Type* wrappingTy = getItem(wrapping).asType();
+  assert(wrappingTy);
+
+  if (ty.isConstQualified()) {
+    ItemId id = nextItemId();
+    addItem(std::make_unique<QualifiedType>(id, *wrappingTy, true));
+    return id;
+  }
+
+  return wrapping;
+}
+
+bool BindgenContext::getBuiltinOrRegisteredTy(const clang::Type& type, ItemId& out) const {
   if (getRegisteredType(type, out))
     return true;
 

@@ -8,6 +8,7 @@ namespace clang {
 class Type;
 class ASTContext;
 class CompilerInstance;
+class QualType;
 }
 
 namespace bindgen {
@@ -29,9 +30,17 @@ public:
   ItemId nextItemId() {
     return ++m_lastItemId;
   }
+
+  const clang::ASTContext& context() const {
+    return m_context;
+  }
+
   ItemId registerType(const clang::Type&);
-  bool getRegisteredType(clang::Type&, ItemId& out);
-  bool getBuiltinOrRegisteredTy(clang::Type&, ItemId& out);
+  void addItem(std::unique_ptr<Item>);
+  Item& getItem(ItemId id);
+  bool getRegisteredType(const clang::Type&, ItemId& out) const;
+  bool getBuiltinOrRegisteredTy(const clang::Type&, ItemId& out) const;
+  ItemId maybeBuildWrapperForQualTy(ItemId wrapping, clang::QualType);
 };
 
 }  // namespace bindgen

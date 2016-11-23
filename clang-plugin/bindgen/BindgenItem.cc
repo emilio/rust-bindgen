@@ -1,4 +1,5 @@
 #include "BindgenItem.h"
+#include "BindgenType.h"
 
 #include "clang/Frontend/FrontendPluginRegistry.h"
 #include "clang/AST/AST.h"
@@ -8,31 +9,30 @@
 
 namespace bindgen {
 
-using clang::RecordDecl;
 using clang::CXXRecordDecl;
+using clang::RecordDecl;
+using clang::TypeDecl;
+using clang::QualType;
+using clang::FunctionDecl;
+using clang::NamespaceDecl;
 
-std::unique_ptr<Item> Item::create(BindgenContext& ctx,
-                                   const clang::Decl& decl) {
-  if (const RecordDecl* recordDecl = clang::dyn_cast<RecordDecl>(&decl))
-    return Record::create(ctx, *recordDecl);
+bool Item::create(BindgenContext& ctx, const clang::Decl& decl, ItemId& out) {
+  if (const TypeDecl* tyDecl = clang::dyn_cast<TypeDecl>(&decl)) {
+    const QualType ty = ctx.context().getTypeDeclType(tyDecl);
+    assert(!ty.isNull());
+    if (ty.isNull())
+      return false;
 
-  return nullptr;
-}
-
-std::unique_ptr<Record> Record::create(BindgenContext& ctx,
-                                       const RecordDecl& decl) {
-  std::vector<RecordField> fields;
-  ctx.registerType(*decl.getTypeForDecl());
-  for (auto* field : decl.fields()) {
-    const clang::QualType type = field->getType();
-    const ItemId bindgenType = Type::fromClangTy(ctx, *type.getTypePtr());
-
-    fields.push_back(RecordField{
-        field->getNameAsString(), type.isConstQualified(), bindgenType,
-    });
+    return Type::fromClangTy(ctx, ty, out);
   }
-  // TODO
-  return nullptr;
+
+  if (/* const FunctionDecl* fnDecl = */ clang::dyn_cast<FunctionDecl>(&decl))
+    return false; // TODO
+
+  if (/* const NamespaceDecl* nsDecl = */ clang::dyn_cast<NamespaceDecl>(&decl))
+    return false; // TODO
+
+  return false;
 }
 
 }  // namespace bindgen
