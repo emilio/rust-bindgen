@@ -30,11 +30,10 @@ public:
 
 class QualifiedType : public Type {
   bool m_isConst;
+
 public:
   QualifiedType(ItemId id, const Type& wrapping, bool isConst)
-    : Type(id, wrapping.parent(), "", wrapping.name())
-    , m_isConst(isConst)
-  {}
+    : Type(id, wrapping.parent(), "", wrapping.name()), m_isConst(isConst) {}
 
   bool isConst() const {
     return m_isConst;
@@ -46,9 +45,7 @@ class PointerType : public Type {
 
 public:
   PointerType(ItemId id, ItemId pointee)
-    : Type(id, 0, "", "")
-    , m_pointee(pointee)
-  {}
+    : Type(id, 0, "", ""), m_pointee(pointee) {}
 };
 
 class ArrayType : public Type {
@@ -57,10 +54,7 @@ class ArrayType : public Type {
 
 public:
   ArrayType(ItemId id, ItemId inner, size_t length)
-    : Type(id, 0, "", "")
-    , m_inner(inner)
-    , m_length(length)
-  {}
+    : Type(id, 0, "", ""), m_inner(inner), m_length(length) {}
 };
 
 enum class IntKind : uint8_t {
@@ -131,10 +125,12 @@ class Record : public Type {
   std::vector<RecordField> m_fields;
 
 public:
-  Record(ItemId id, ItemId parent, const std::string& comment, const std::string& name, const std::vector<RecordField>& fields)
-    : Type(id, parent, comment, name)
-    , m_fields(fields)
-  {}
+  Record(ItemId id,
+         ItemId parent,
+         const std::string& comment,
+         const std::string& name,
+         const std::vector<RecordField>& fields)
+    : Type(id, parent, comment, name), m_fields(fields) {}
 
   static bool fromClangTy(BindgenContext&, const clang::RecordType&, ItemId&);
 };

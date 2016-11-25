@@ -27,10 +27,10 @@ bool Item::create(BindgenContext& ctx, const clang::Decl& decl, ItemId& out) {
   }
 
   if (/* const FunctionDecl* fnDecl = */ clang::dyn_cast<FunctionDecl>(&decl))
-    return false; // TODO
+    return false;  // TODO
 
   if (/* const NamespaceDecl* nsDecl = */ clang::dyn_cast<NamespaceDecl>(&decl))
-    return false; // TODO
+    return false;  // TODO
 
   return false;
 }

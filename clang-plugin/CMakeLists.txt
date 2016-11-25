@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -g3 -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Werror -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
-add_library(bindgen OBJECT
+add_library(bindgen SHARED
   bindgen/BindgenAnnotations.cc
   bindgen/BindgenContext.cc
   bindgen/BindgenItem.cc
@@ -33,4 +33,11 @@ add_custom_target(format COMMAND
   find "${CMAKE_SOURCE_DIR}/bindgen"
     -regex "'.*\\.\\(cc\\|h\\)'"
     -exec clang-format -i {} "\;"
+)
+
+add_custom_target(check-linkage COMMAND
+  /usr/bin/clang++
+          -Xclang -load -Xclang "${CMAKE_BINARY_DIR}/libbindgen.so"
+          -Xclang -plugin -Xclang rust-bindgen "${CMAKE_SOURCE_DIR}/bindgen/RustBindgen.h"
+          -std=c++11
 )

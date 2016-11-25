@@ -5,7 +5,9 @@
 
 namespace bindgen {
 
-bool Type::fromClangTy(BindgenContext& ctx, const clang::Type& ty, ItemId& out) {
+bool Type::fromClangTy(BindgenContext& ctx,
+                       const clang::Type& ty,
+                       ItemId& out) {
   if (ctx.getRegisteredType(ty, out))
     return true;
 
@@ -30,7 +32,8 @@ bool Type::fromClangTy(BindgenContext& ctx, const clang::Type& ty, ItemId& out) 
       return false;
 
     size_t length = 0;
-    if (const clang::ConstantArrayType* constArr = clang::dyn_cast<clang::ConstantArrayType>(asArray))
+    if (const clang::ConstantArrayType* constArr =
+            clang::dyn_cast<clang::ConstantArrayType>(asArray))
       length = constArr->getSize().getZExtValue();
 
     out = ctx.nextItemId();
@@ -44,7 +47,9 @@ bool Type::fromClangTy(BindgenContext& ctx, const clang::Type& ty, ItemId& out) 
   return false;
 }
 
-bool Type::fromClangTy(BindgenContext& ctx, const clang::QualType& ty, ItemId& out) {
+bool Type::fromClangTy(BindgenContext& ctx,
+                       const clang::QualType& ty,
+                       ItemId& out) {
   assert(!ty.isNull());
 
   if (!fromClangTy(ctx, ty, out))
@@ -54,7 +59,9 @@ bool Type::fromClangTy(BindgenContext& ctx, const clang::QualType& ty, ItemId& o
   return true;
 }
 
-bool Record::fromClangTy(BindgenContext& ctx, const clang::RecordType& ty, ItemId& out) {
+bool Record::fromClangTy(BindgenContext& ctx,
+                         const clang::RecordType& ty,
+                         ItemId& out) {
   std::vector<RecordField> fields;
   // This one can be recursive, and point to ourselves, so register us and let
   // it assign us an id.
@@ -73,7 +80,8 @@ bool Record::fromClangTy(BindgenContext& ctx, const clang::RecordType& ty, ItemI
 
   // FIXME(emilio): Comment.
   ItemId parent = Item::findParent(decl);
-  ctx.addItem(std::make_unique<Record>(out, parent, "", decl.getNameAsString(), fields));
+  ctx.addItem(std::make_unique<Record>(out, parent, "", decl.getNameAsString(),
+                                       fields));
   return true;
 }
 

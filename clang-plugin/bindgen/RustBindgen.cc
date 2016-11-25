@@ -17,18 +17,15 @@ using clang::dyn_cast;
 using clang::CXXRecordDecl;
 using clang::RecordDecl;
 
-IRGenerator::IRGenerator(clang::CompilerInstance& instance)
-  : m_compilerInstance(instance) {}
-
 void IRGenerator::HandleTranslationUnit(clang::ASTContext& astContext) {
   BindgenContext ctx(astContext, m_compilerInstance);
 }
 
 class BindgenAction : public PluginASTAction {
 protected:
-  std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance&,
+  std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance& compiler,
                                                  llvm::StringRef) override {
-    return nullptr;
+    return std::make_unique<IRGenerator>(compiler);
   }
 
   bool ParseArgs(const CompilerInstance&,
@@ -38,3 +35,6 @@ protected:
 };
 
 }  // namespace bindgen
+
+static clang::FrontendPluginRegistry::Add<bindgen::BindgenAction> X(
+    "rust-bindgen", "generate rust bindgen's IR");

@@ -2,6 +2,7 @@
 
 #include "clang/AST/AST.h"
 #include "clang/AST/ASTConsumer.h"
+#include "BindgenItem.h"
 
 #include <cstdint>
 #include <set>
@@ -13,7 +14,6 @@ class CompilerInstance;
 
 namespace bindgen {
 
-class Item;
 class BindgenContext;
 
 class IRGenerator : public clang::ASTConsumer {
@@ -21,7 +21,8 @@ class IRGenerator : public clang::ASTConsumer {
   std::set<std::unique_ptr<Item>> m_items;
 
 public:
-  IRGenerator(clang::CompilerInstance&);
+  IRGenerator(clang::CompilerInstance& instance)
+    : m_compilerInstance(instance) {}
 
   void HandleTranslationUnit(clang::ASTContext&) override;
 };

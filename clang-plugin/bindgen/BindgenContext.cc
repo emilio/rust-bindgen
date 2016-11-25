@@ -97,7 +97,8 @@ Item& BindgenContext::getItem(ItemId id) {
   return *it->second;
 }
 
-bool BindgenContext::getRegisteredType(const clang::Type& ty, ItemId& out) const {
+bool BindgenContext::getRegisteredType(const clang::Type& ty,
+                                       ItemId& out) const {
   auto it = m_registeredTypes.find(&ty);
   if (it == m_registeredTypes.end())
     return false;
@@ -105,7 +106,8 @@ bool BindgenContext::getRegisteredType(const clang::Type& ty, ItemId& out) const
   return true;
 }
 
-ItemId BindgenContext::maybeBuildWrapperForQualTy(ItemId wrapping, clang::QualType ty) {
+ItemId BindgenContext::maybeBuildWrapperForQualTy(ItemId wrapping,
+                                                  clang::QualType ty) {
   Type* wrappingTy = getItem(wrapping).asType();
   assert(wrappingTy);
 
@@ -118,7 +120,8 @@ ItemId BindgenContext::maybeBuildWrapperForQualTy(ItemId wrapping, clang::QualTy
   return wrapping;
 }
 
-bool BindgenContext::getBuiltinOrRegisteredTy(const clang::Type& type, ItemId& out) const {
+bool BindgenContext::getBuiltinOrRegisteredTy(const clang::Type& type,
+                                              ItemId& out) const {
   if (getRegisteredType(type, out))
     return true;
 
