@@ -36,8 +36,7 @@ add_custom_target(format COMMAND
 )
 
 add_custom_target(check-linkage COMMAND
-  /usr/bin/clang++
-          -Xclang -load -Xclang "${CMAKE_BINARY_DIR}/libbindgen.so"
-          -Xclang -plugin -Xclang rust-bindgen "${CMAKE_SOURCE_DIR}/bindgen/RustBindgen.h"
-          -std=c++11
+  clang -Xclang -load -Xclang "${CMAKE_BINARY_DIR}/libbindgen.so"
+        -Xclang -plugin -Xclang rust-bindgen
+        "${CMAKE_SOURCE_DIR}/tests/minimal.h"
 )

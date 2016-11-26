@@ -11,9 +11,6 @@ bool Type::fromClangTy(BindgenContext& ctx,
   if (ctx.getRegisteredType(ty, out))
     return true;
 
-  // That should've covered integer types, builtins, etc.
-  assert(!ty.isBuiltinType());
-
   if (ty.isPointerType()) {
     ItemId inner;
     if (!fromClangTy(ctx, ty.getPointeeType(), inner))
@@ -52,7 +49,7 @@ bool Type::fromClangTy(BindgenContext& ctx,
                        ItemId& out) {
   assert(!ty.isNull());
 
-  if (!fromClangTy(ctx, ty, out))
+  if (!fromClangTy(ctx, *ty.getTypePtr(), out))
     return false;
 
   out = ctx.maybeBuildWrapperForQualTy(out, ty);
@@ -71,7 +68,12 @@ bool Record::fromClangTy(BindgenContext& ctx,
   for (auto* field : decl.fields()) {
     ItemId inner;
     bool found = Type::fromClangTy(ctx, field->getType(), inner);
-    assert(found);
+    if (!found) {
+      llvm::errs() << "Couldn't parse field type for " << ty.getTypeClassName();
+      ty.dump(llvm::errs());
+      field->getType().dump(llvm::errs());
+      return false;
+    }
 
     fields.push_back(RecordField{
         field->getNameAsString(), inner,

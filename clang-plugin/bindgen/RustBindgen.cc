@@ -19,6 +19,28 @@ using clang::RecordDecl;
 
 void IRGenerator::HandleTranslationUnit(clang::ASTContext& astContext) {
   BindgenContext ctx(astContext, m_compilerInstance);
+
+  class Visitor : public clang::RecursiveASTVisitor<Visitor> {
+    BindgenContext& m_ctx;
+  public:
+    Visitor(BindgenContext& ctx)
+      : m_ctx(ctx)
+    {}
+
+    bool VisitDecl(clang::Decl* declaration) {
+      assert(declaration);
+
+      ItemId id;
+      if (Item::create(m_ctx, *declaration, id))
+        printf("Parsed %zu\n", id);
+
+      return true;
+    }
+  } visitor(ctx);
+
+  clang::Decl* decl = astContext.getTranslationUnitDecl();
+  assert(decl);
+  visitor.TraverseDecl(decl);
 }
 
 class BindgenAction : public PluginASTAction {
