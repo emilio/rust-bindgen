@@ -8,7 +8,7 @@ namespace bindgen {
 bool Type::fromClangTy(BindgenContext& ctx,
                        const clang::Type& ty,
                        ItemId& out) {
-  if (ctx.getRegisteredType(ty, out))
+  if (ctx.getBuiltinOrRegisteredTy(ty, out))
     return true;
 
   if (ty.isPointerType()) {

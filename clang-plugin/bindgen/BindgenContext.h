@@ -31,6 +31,8 @@ public:
     return ++m_lastItemId;
   }
 
+  static ItemId rootId();
+
   const clang::ASTContext& context() const {
     return m_context;
   }
@@ -41,6 +43,7 @@ public:
   bool getRegisteredType(const clang::Type&, ItemId& out) const;
   bool getBuiltinOrRegisteredTy(const clang::Type&, ItemId& out) const;
   ItemId maybeBuildWrapperForQualTy(ItemId wrapping, clang::QualType);
+  void serialize(std::ostream&);
 };
 
 }  // namespace bindgen

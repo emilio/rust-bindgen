@@ -35,4 +35,20 @@ bool Item::create(BindgenContext& ctx, const clang::Decl& decl, ItemId& out) {
   return false;
 }
 
+ItemId Item::findParent(const clang::Decl& decl) {
+  const clang::DeclContext* context = decl.getDeclContext();
+  while (context) {
+    if (context->isTranslationUnit())
+      return BindgenContext::rootId();
+    // FIXME: Grab it!
+    if (context->isRecord() || context->isNamespace())
+      return BindgenContext::rootId();
+
+    context = context->getParent();
+  }
+
+  assert(false && "Should be unreachable!");
+  return BindgenContext::rootId();
+}
+
 }  // namespace bindgen

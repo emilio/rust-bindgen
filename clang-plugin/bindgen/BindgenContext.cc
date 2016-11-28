@@ -47,7 +47,9 @@ inline static ItemId AsId(ReservedId id) {
   return static_cast<ItemId>(id);
 }
 
-const ItemId ROOT_MODULE = 0;
+ItemId BindgenContext::rootId() {
+  return AsId(ReservedId::Root);
+}
 
 BindgenContext::BindgenContext(clang::ASTContext& ctx,
                                clang::CompilerInstance& ci)
@@ -133,6 +135,7 @@ bool BindgenContext::getBuiltinOrRegisteredTy(const clang::Type& type,
 
   switch (type.getTypeClass()) {
     case clang::Type::Builtin: {
+      printf("BuiltinType\n");
       const clang::BuiltinType& builtin = llvm::cast<clang::BuiltinType>(type);
       switch (builtin.getKind()) {
         BUILTIN_CASE(Void);
@@ -168,10 +171,23 @@ bool BindgenContext::getBuiltinOrRegisteredTy(const clang::Type& type,
           return false;
       }
     }
+    // Intentionally ignored.
+    case clang::Type::Record:
+      return false;
     default:
-      llvm::errs() << "unhandled type class " << type.getTypeClass();
+      llvm::errs() << "unhandled type class " << type.getTypeClass()
+                   << " (" << type.getTypeClassName() << ")\n";
       return false;
   }
 }
+
+void BindgenContext::serialize(std::ostream& os) {
+  // FIXME(emilio): This isn't exactly pretty.
+  os << "{";
+    os << "\"root_id\": " << rootId() << ",";
+    os << "\"items\": ";
+  os << "}";
+}
+
 
 }  // namespace bindgen
