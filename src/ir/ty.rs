@@ -991,7 +991,8 @@ impl Type {
 
         let kind = if location.kind() == CXCursor_TemplateRef ||
                       (ty.template_args().is_some() &&
-                       ty_kind != CXType_Typedef) {
+                       ty_kind != CXType_Typedef &&
+                       ty_kind != CXType_Elaborated) {
             // This is a template instantiation.
             let inst = TemplateInstantiation::from_ty(&ty, ctx);
             TypeKind::TemplateInstantiation(inst)

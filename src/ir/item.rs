@@ -1221,9 +1221,8 @@ impl ClangItemParser for Item {
                           id = {:?}; spelling = {}",
                           id,
                           ty.spelling());
-                    Item::named_type(Some(id), location, ctx)
-                        .map(Ok)
-                        .unwrap_or(Err(ParseError::Recurse))
+                    Ok(Item::named_type(Some(id), location, ctx)
+                        .unwrap_or_else(|| Item::new_opaque_type(id, ty, ctx)))
                 } else {
                     result
                 }
