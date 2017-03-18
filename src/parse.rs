@@ -82,6 +82,7 @@ pub trait ClangItemParser: Sized {
 
     /// Create a named template type.
     fn named_type(with_id: Option<ItemId>,
+                  ty: clang::Type,
                   location: clang::Cursor,
                   ctx: &mut BindgenContext)
                   -> Option<ItemId>;

@@ -433,10 +433,10 @@ impl Item {
         }
     }
 
-    fn new_opaque_type(with_id: ItemId,
-                       ty: &clang::Type,
-                       ctx: &mut BindgenContext)
-                       -> ItemId {
+    pub fn new_opaque_type(with_id: ItemId,
+                           ty: &clang::Type,
+                           ctx: &mut BindgenContext)
+                           -> ItemId {
         let ty = Opaque::from_clang_ty(ty);
         let kind = ItemKind::Type(ty);
         let parent = ctx.root_module();
@@ -1119,7 +1119,7 @@ impl ClangItemParser for Item {
                 return Ok(Item::new_opaque_type(id, ty, ctx));
             }
 
-            if let Some(id) = Item::named_type(Some(id), location, ctx) {
+            if let Some(id) = Item::named_type(Some(id), *ty, location, ctx) {
                 return Ok(id);
             }
         }
@@ -1149,8 +1149,7 @@ impl ClangItemParser for Item {
         let mut valid_decl = decl.kind() != CXCursor_NoDeclFound;
         let declaration_to_look_for = if valid_decl {
             decl.canonical()
-        } else if location.kind() ==
-                                                CXCursor_ClassTemplate {
+        } else if location.kind() == CXCursor_ClassTemplate {
             valid_decl = true;
             location
         } else {
@@ -1221,7 +1220,7 @@ impl ClangItemParser for Item {
                           id = {:?}; spelling = {}",
                           id,
                           ty.spelling());
-                    Item::named_type(Some(id), location, ctx)
+                    Item::named_type(Some(id), *ty, location, ctx)
                         .map(Ok)
                         .unwrap_or(Err(ParseError::Recurse))
                 } else {
@@ -1242,11 +1241,10 @@ impl ClangItemParser for Item {
     /// always local so it's the only exception when there's no declaration for
     /// a type.
     fn named_type(with_id: Option<ItemId>,
+                  ty: clang::Type,
                   location: clang::Cursor,
                   ctx: &mut BindgenContext)
                   -> Option<ItemId> {
-        let ty = location.cur_type();
-
         debug!("Item::named_type:\n\
                 \twith_id = {:?},\n\
                 \tty = {} {:?},\n\
@@ -1262,6 +1260,10 @@ impl ClangItemParser for Item {
             // updated in the future if they start properly exposing template
             // type parameters.
             return None;
+        }
+
+        if location.kind() == clang_sys::CXCursor_NoDeclFound {
+
         }
 
         let ty_spelling = ty.spelling();
@@ -1285,7 +1287,9 @@ impl ClangItemParser for Item {
         //      referenced = (kind = TemplateTypeParameter, ...),
         //      ...)
         //
-        // 3. The cursor is pointing at some use of a template type parameter
+        // 3. The cursor is in a builtin header, for which
+        //
+        // 4. The cursor is pointing at some use of a template type parameter
         // (for example, in a FieldDecl), and this cursor has a child cursor
         // whose spelling is the same as the parent's type's spelling, and whose
         // kind is a TypeRef of the situation (2) variety.
@@ -1329,20 +1333,21 @@ impl ClangItemParser for Item {
                 (refd_spelling.is_empty() && ANON_TYPE_PARAM_RE.is_match(spelling.as_ref()))
         }
 
-        let definition = if is_template_with_spelling(&location,
-                                                      &ty_spelling) {
+        let definition = if is_template_with_spelling(&location, &ty_spelling) {
             // Situation (1)
             location
-        } else if location.kind() ==
-                                   clang_sys::CXCursor_TypeRef {
+        } else if location.kind() == clang_sys::CXCursor_TypeRef {
             // Situation (2)
             match location.referenced() {
                 Some(refd) if is_template_with_spelling(&refd,
                                                         &ty_spelling) => refd,
                 _ => return None,
             }
-        } else {
+        } else if location.kind() == clang_sys::CXCursor_NoDeclFound {
             // Situation (3)
+            location
+        } else {
+            // Situation (4)
             let mut definition = None;
 
             location.visit(|child| {
@@ -1361,13 +1366,14 @@ impl ClangItemParser for Item {
                 clang_sys::CXChildVisit_Continue
             });
 
-            if let Some(def) = definition {
-                def
-            } else {
-                return None;
+            match definition {
+                Some(def) => def,
+                None => return None,
             }
         };
-        assert!(is_template_with_spelling(&definition, &ty_spelling));
+
+        assert!(definition.kind() == clang_sys::CXCursor_NoDeclFound ||
+                is_template_with_spelling(&definition, &ty_spelling));
 
         // Named types are always parented to the root module. They are never
         // referenced with namespace prefixes, and they can't inherit anything
@@ -1378,9 +1384,8 @@ impl ClangItemParser for Item {
         if let Some(id) = ctx.get_named_type(&definition) {
             if let Some(with_id) = with_id {
                 return Some(ctx.build_ty_wrapper(with_id, id, Some(parent), &ty));
-            } else {
-                return Some(id);
             }
+            return Some(id);
         }
 
         // See tests/headers/const_tparam.hpp and

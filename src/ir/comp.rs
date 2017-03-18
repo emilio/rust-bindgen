@@ -597,7 +597,7 @@ impl CompInfo {
                     ci.packed = true;
                 }
                 CXCursor_TemplateTypeParameter => {
-                    let param = Item::named_type(None, cur, ctx)
+                    let param = Item::named_type(None, cur.cur_type(), cur, ctx)
                         .expect("Item::named_type should't fail when pointing \
                                  at a TemplateTypeParameter");
                     ci.template_params.push(param);

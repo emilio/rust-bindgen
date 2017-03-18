@@ -989,11 +989,13 @@ impl Type {
                                        None));
         }
 
-        let kind = if location.kind() == CXCursor_TemplateRef ||
+        let kind = if location.specialized().is_some() ||
                       (ty.template_args().is_some() &&
                        ty_kind != CXType_Typedef) {
+            debug!("About to parse a template instantiation: loc = {:?}; \
+                    ty = {:?};", location, ty);
             // This is a template instantiation.
-            let inst = TemplateInstantiation::from_ty(&ty, ctx);
+            let inst = TemplateInstantiation::from_ty(&ty, location, ctx);
             TypeKind::TemplateInstantiation(inst)
         } else {
             match ty_kind {
@@ -1133,6 +1135,7 @@ impl Type {
                                         CXCursor_TemplateTypeParameter => {
                                             let param =
                                                 Item::named_type(None,
+                                                                 cur.cur_type(),
                                                                  cur,
                                                                  ctx)
                                                 .expect("Item::named_type shouldn't \
@@ -1267,8 +1270,7 @@ impl Type {
                 // can even add bindings for that, so huh.
                 CXType_RValueReference |
                 CXType_LValueReference => {
-                    let inner = Item::from_ty_or_ref(ty.pointee_type()
-                                                         .unwrap(),
+                    let inner = Item::from_ty_or_ref(ty.pointee_type().unwrap(),
                                                      location,
                                                      None,
                                                      ctx);

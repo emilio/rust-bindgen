@@ -87,6 +87,7 @@ impl TemplateInstantiation {
 
     /// Parse a `TemplateInstantiation` from a clang `Type`.
     pub fn from_ty(ty: &clang::Type,
+                   location: clang::Cursor,
                    ctx: &mut BindgenContext)
                    -> TemplateInstantiation {
         use clang_sys::*;
@@ -100,14 +101,14 @@ impl TemplateInstantiation {
                     .collect()
             });
 
-        let definition = ty.declaration()
-            .specialized()
+        let definition = location.specialized()
+            .or_else(|| ty.declaration().specialized())
             .or_else(|| {
                 let mut template_ref = None;
-                ty.declaration().visit(|child| {
+                location.semantic_parent().visit(|child| {
                     if child.kind() == CXCursor_TemplateRef {
                         template_ref = Some(child);
-                        return CXVisit_Break;
+                        return CXChildVisit_Break;
                     }
 
                     // Instantiations of template aliases might have the

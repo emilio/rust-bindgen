@@ -378,7 +378,10 @@ impl<'ctx, 'gen> MonotoneFramework for UsedTemplateParameters<'ctx, 'gen> {
         // the end of this method. This allows us to side-step HashMap's lack of
         // an analog to slice::split_at_mut.
         let mut used_by_this_id =
-            self.used.get_mut(&id).unwrap().take().unwrap();
+            match self.used.get_mut(&id) {
+                Some(n) => n.take().unwrap(),
+                None => return false,
+            };
 
         let original_len = used_by_this_id.len();
 
@@ -427,8 +430,7 @@ impl<'ctx, 'gen> MonotoneFramework for UsedTemplateParameters<'ctx, 'gen> {
                         .iter()
                         .cloned();
                     used_by_this_id.extend(used_by_sub_id);
-                },
-                           &());
+                }, &());
             }
         }
 

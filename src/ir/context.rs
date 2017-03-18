@@ -322,24 +322,26 @@ impl<'ctx> BindgenContext<'ctx> {
 
         assert!(item.expect_type().is_named(),
                 "Should directly be a named type, not a resolved reference or anything");
-        assert_eq!(definition.kind(),
-                   clang_sys::CXCursor_TemplateTypeParameter);
+        assert!(definition.kind() == clang_sys::CXCursor_TemplateTypeParameter ||
+                definition.kind() == clang_sys::CXCursor_NoDeclFound);
 
         let id = item.id();
         let old_item = self.items.insert(id, item);
         assert!(old_item.is_none(),
                 "should not have already associated an item with the given id");
-
-        let old_named_ty = self.named_types.insert(definition, id);
-        assert!(old_named_ty.is_none(),
-                "should not have already associated a named type with this id");
+        if definition.kind() == clang_sys::CXCursor_TemplateTypeParameter {
+            let old_named_ty = self.named_types.insert(definition, id);
+            assert!(old_named_ty.is_none(),
+                    "should not have already associated a named type with this id");
+        }
+        // Otherwise, nothing to do, it's unreachable, like a builtin.
     }
 
     /// Get the named type defined at the given cursor location, if we've
     /// already added one.
     pub fn get_named_type(&self, definition: &clang::Cursor) -> Option<ItemId> {
-        assert_eq!(definition.kind(),
-                   clang_sys::CXCursor_TemplateTypeParameter);
+        assert!(definition.kind() == clang_sys::CXCursor_TemplateTypeParameter ||
+                definition.kind() == clang_sys::CXCursor_NoDeclFound);
         self.named_types.get(definition).cloned()
     }
 
@@ -422,20 +424,15 @@ impl<'ctx> BindgenContext<'ctx> {
         let typerefs = self.collect_typerefs();
 
         for (id, ty, loc, parent_id) in typerefs {
-            let _resolved = {
-                let resolved = Item::from_ty(&ty, loc, parent_id, self)
-                    .expect("What happened?");
-                let mut item = self.items.get_mut(&id).unwrap();
+            let resolved = Item::from_ty(&ty, loc, parent_id, self)
+                .unwrap_or_else(|_| {
+                    let new_id = self.next_item_id();
+                    Item::new_opaque_type(new_id, &ty, self)
+                });
 
-                *item.kind_mut().as_type_mut().unwrap().kind_mut() =
-                    TypeKind::ResolvedTypeRef(resolved);
-                resolved
-            };
-
-            // Something in the STL is trolling me. I don't need this assertion
-            // right now, but worth investigating properly once this lands.
-            //
-            // debug_assert!(self.items.get(&resolved).is_some(), "How?");
+            let mut item = self.items.get_mut(&id).unwrap();
+            *item.kind_mut().as_type_mut().unwrap().kind_mut() =
+                TypeKind::ResolvedTypeRef(resolved);
         }
     }
 
