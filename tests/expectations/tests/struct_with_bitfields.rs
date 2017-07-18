@@ -24,99 +24,98 @@ impl bitfield {
     #[inline]
     pub fn a(&self) -> ::std::os::raw::c_ushort {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (1usize as u8)) >>
-                                       0u32) as u16)
+            ::std::mem::transmute(((self._bitfield_1 & (1u64 as u8)) >> 0u32)
+                                      as u16)
         }
     }
     #[inline]
     pub fn set_a(&mut self, val: ::std::os::raw::c_ushort) {
-        self._bitfield_1 &= !(1usize as u8);
-        self._bitfield_1 |= ((val as u16 as u8) << 0u32) & (1usize as u8);
+        self._bitfield_1 &= !(1u64 as u8);
+        self._bitfield_1 |= ((val as u16 as u8) << 0u32) & (1u64 as u8);
     }
     #[inline]
     pub fn b(&self) -> ::std::os::raw::c_ushort {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (2usize as u8)) >>
-                                       1u32) as u16)
+            ::std::mem::transmute(((self._bitfield_1 & (2u64 as u8)) >> 1u32)
+                                      as u16)
         }
     }
     #[inline]
     pub fn set_b(&mut self, val: ::std::os::raw::c_ushort) {
-        self._bitfield_1 &= !(2usize as u8);
-        self._bitfield_1 |= ((val as u16 as u8) << 1u32) & (2usize as u8);
+        self._bitfield_1 &= !(2u64 as u8);
+        self._bitfield_1 |= ((val as u16 as u8) << 1u32) & (2u64 as u8);
     }
     #[inline]
     pub fn c(&self) -> ::std::os::raw::c_ushort {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (4usize as u8)) >>
-                                       2u32) as u16)
+            ::std::mem::transmute(((self._bitfield_1 & (4u64 as u8)) >> 2u32)
+                                      as u16)
         }
     }
     #[inline]
     pub fn set_c(&mut self, val: ::std::os::raw::c_ushort) {
-        self._bitfield_1 &= !(4usize as u8);
-        self._bitfield_1 |= ((val as u16 as u8) << 2u32) & (4usize as u8);
+        self._bitfield_1 &= !(4u64 as u8);
+        self._bitfield_1 |= ((val as u16 as u8) << 2u32) & (4u64 as u8);
     }
     #[inline]
     pub fn at_offset_3(&self) -> ::std::os::raw::c_ushort {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (8usize as u8)) >>
-                                       3u32) as u16)
+            ::std::mem::transmute(((self._bitfield_1 & (8u64 as u8)) >> 3u32)
+                                      as u16)
         }
     }
     #[inline]
     pub fn set_at_offset_3(&mut self, val: ::std::os::raw::c_ushort) {
-        self._bitfield_1 &= !(8usize as u8);
-        self._bitfield_1 |= ((val as u16 as u8) << 3u32) & (8usize as u8);
+        self._bitfield_1 &= !(8u64 as u8);
+        self._bitfield_1 |= ((val as u16 as u8) << 3u32) & (8u64 as u8);
     }
     #[inline]
     pub fn at_offset_4(&self) -> ::std::os::raw::c_ushort {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (48usize as u8)) >>
-                                       4u32) as u16)
+            ::std::mem::transmute(((self._bitfield_1 & (48u64 as u8)) >> 4u32)
+                                      as u16)
         }
     }
     #[inline]
     pub fn set_at_offset_4(&mut self, val: ::std::os::raw::c_ushort) {
-        self._bitfield_1 &= !(48usize as u8);
-        self._bitfield_1 |= ((val as u16 as u8) << 4u32) & (48usize as u8);
+        self._bitfield_1 &= !(48u64 as u8);
+        self._bitfield_1 |= ((val as u16 as u8) << 4u32) & (48u64 as u8);
     }
     #[inline]
     pub fn d(&self) -> ::std::os::raw::c_ushort {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (192usize as u8)) >>
+            ::std::mem::transmute(((self._bitfield_1 & (192u64 as u8)) >>
                                        6u32) as u16)
         }
     }
     #[inline]
     pub fn set_d(&mut self, val: ::std::os::raw::c_ushort) {
-        self._bitfield_1 &= !(192usize as u8);
-        self._bitfield_1 |= ((val as u16 as u8) << 6u32) & (192usize as u8);
+        self._bitfield_1 &= !(192u64 as u8);
+        self._bitfield_1 |= ((val as u16 as u8) << 6u32) & (192u64 as u8);
     }
     #[inline]
     pub fn f(&self) -> ::std::os::raw::c_uint {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_2 & (3usize as u8)) >>
-                                       0u32) as u32)
+            ::std::mem::transmute(((self._bitfield_2 & (3u64 as u8)) >> 0u32)
+                                      as u32)
         }
     }
     #[inline]
     pub fn set_f(&mut self, val: ::std::os::raw::c_uint) {
-        self._bitfield_2 &= !(3usize as u8);
-        self._bitfield_2 |= ((val as u32 as u8) << 0u32) & (3usize as u8);
+        self._bitfield_2 &= !(3u64 as u8);
+        self._bitfield_2 |= ((val as u32 as u8) << 0u32) & (3u64 as u8);
     }
     #[inline]
     pub fn g(&self) -> ::std::os::raw::c_uint {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_3 &
-                                        (4294967295usize as u32)) >> 0u32) as
-                                      u32)
+            ::std::mem::transmute(((self._bitfield_3 & (4294967295u64 as u32))
+                                       >> 0u32) as u32)
         }
     }
     #[inline]
     pub fn set_g(&mut self, val: ::std::os::raw::c_uint) {
-        self._bitfield_3 &= !(4294967295usize as u32);
+        self._bitfield_3 &= !(4294967295u64 as u32);
         self._bitfield_3 |=
-            ((val as u32 as u32) << 0u32) & (4294967295usize as u32);
+            ((val as u32 as u32) << 0u32) & (4294967295u64 as u32);
     }
 }

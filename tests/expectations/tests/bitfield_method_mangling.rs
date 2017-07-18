@@ -21,29 +21,28 @@ impl _bindgen_ty_1 {
     #[inline]
     pub fn pad3(&self) -> ::std::os::raw::c_uint {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (16777215usize as u32))
+            ::std::mem::transmute(((self._bitfield_1 & (16777215u64 as u32))
                                        >> 0u32) as u32)
         }
     }
     #[inline]
     pub fn set_pad3(&mut self, val: ::std::os::raw::c_uint) {
-        self._bitfield_1 &= !(16777215usize as u32);
+        self._bitfield_1 &= !(16777215u64 as u32);
         self._bitfield_1 |=
-            ((val as u32 as u32) << 0u32) & (16777215usize as u32);
+            ((val as u32 as u32) << 0u32) & (16777215u64 as u32);
     }
     #[inline]
     pub fn type_(&self) -> ::std::os::raw::c_uint {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 &
-                                        (4278190080usize as u32)) >> 24u32) as
-                                      u32)
+            ::std::mem::transmute(((self._bitfield_1 & (4278190080u64 as u32))
+                                       >> 24u32) as u32)
         }
     }
     #[inline]
     pub fn set_type(&mut self, val: ::std::os::raw::c_uint) {
-        self._bitfield_1 &= !(4278190080usize as u32);
+        self._bitfield_1 &= !(4278190080u64 as u32);
         self._bitfield_1 |=
-            ((val as u32 as u32) << 24u32) & (4278190080usize as u32);
+            ((val as u32 as u32) << 24u32) & (4278190080u64 as u32);
     }
 }
 pub type mach_msg_type_descriptor_t = _bindgen_ty_1;

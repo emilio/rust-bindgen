@@ -41,88 +41,86 @@ impl Weird {
     #[inline]
     pub fn bitTest(&self) -> ::std::os::raw::c_uint {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (65535usize as u32)) >>
+            ::std::mem::transmute(((self._bitfield_1 & (65535u64 as u32)) >>
                                        0u32) as u32)
         }
     }
     #[inline]
     pub fn set_bitTest(&mut self, val: ::std::os::raw::c_uint) {
-        self._bitfield_1 &= !(65535usize as u32);
-        self._bitfield_1 |=
-            ((val as u32 as u32) << 0u32) & (65535usize as u32);
+        self._bitfield_1 &= !(65535u64 as u32);
+        self._bitfield_1 |= ((val as u32 as u32) << 0u32) & (65535u64 as u32);
     }
     #[inline]
     pub fn bitTest2(&self) -> ::std::os::raw::c_uint {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 &
-                                        (2147418112usize as u32)) >> 16u32) as
-                                      u32)
+            ::std::mem::transmute(((self._bitfield_1 & (2147418112u64 as u32))
+                                       >> 16u32) as u32)
         }
     }
     #[inline]
     pub fn set_bitTest2(&mut self, val: ::std::os::raw::c_uint) {
-        self._bitfield_1 &= !(2147418112usize as u32);
+        self._bitfield_1 &= !(2147418112u64 as u32);
         self._bitfield_1 |=
-            ((val as u32 as u32) << 16u32) & (2147418112usize as u32);
+            ((val as u32 as u32) << 16u32) & (2147418112u64 as u32);
     }
     #[inline]
     pub fn mFillOpacitySource(&self) -> nsStyleSVGOpacitySource {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_2 & (7usize as u16)) >>
-                                       0u32) as u32)
+            ::std::mem::transmute(((self._bitfield_2 & (7u64 as u16)) >> 0u32)
+                                      as u32)
         }
     }
     #[inline]
     pub fn set_mFillOpacitySource(&mut self, val: nsStyleSVGOpacitySource) {
-        self._bitfield_2 &= !(7usize as u16);
-        self._bitfield_2 |= ((val as u32 as u16) << 0u32) & (7usize as u16);
+        self._bitfield_2 &= !(7u64 as u16);
+        self._bitfield_2 |= ((val as u32 as u16) << 0u32) & (7u64 as u16);
     }
     #[inline]
     pub fn mStrokeOpacitySource(&self) -> nsStyleSVGOpacitySource {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_2 & (56usize as u16)) >>
+            ::std::mem::transmute(((self._bitfield_2 & (56u64 as u16)) >>
                                        3u32) as u32)
         }
     }
     #[inline]
     pub fn set_mStrokeOpacitySource(&mut self, val: nsStyleSVGOpacitySource) {
-        self._bitfield_2 &= !(56usize as u16);
-        self._bitfield_2 |= ((val as u32 as u16) << 3u32) & (56usize as u16);
+        self._bitfield_2 &= !(56u64 as u16);
+        self._bitfield_2 |= ((val as u32 as u16) << 3u32) & (56u64 as u16);
     }
     #[inline]
     pub fn mStrokeDasharrayFromObject(&self) -> bool {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_2 & (64usize as u16)) >>
+            ::std::mem::transmute(((self._bitfield_2 & (64u64 as u16)) >>
                                        6u32) as u8)
         }
     }
     #[inline]
     pub fn set_mStrokeDasharrayFromObject(&mut self, val: bool) {
-        self._bitfield_2 &= !(64usize as u16);
-        self._bitfield_2 |= ((val as u8 as u16) << 6u32) & (64usize as u16);
+        self._bitfield_2 &= !(64u64 as u16);
+        self._bitfield_2 |= ((val as u8 as u16) << 6u32) & (64u64 as u16);
     }
     #[inline]
     pub fn mStrokeDashoffsetFromObject(&self) -> bool {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_2 & (128usize as u16)) >>
+            ::std::mem::transmute(((self._bitfield_2 & (128u64 as u16)) >>
                                        7u32) as u8)
         }
     }
     #[inline]
     pub fn set_mStrokeDashoffsetFromObject(&mut self, val: bool) {
-        self._bitfield_2 &= !(128usize as u16);
-        self._bitfield_2 |= ((val as u8 as u16) << 7u32) & (128usize as u16);
+        self._bitfield_2 &= !(128u64 as u16);
+        self._bitfield_2 |= ((val as u8 as u16) << 7u32) & (128u64 as u16);
     }
     #[inline]
     pub fn mStrokeWidthFromObject(&self) -> bool {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_2 & (256usize as u16)) >>
+            ::std::mem::transmute(((self._bitfield_2 & (256u64 as u16)) >>
                                        8u32) as u8)
         }
     }
     #[inline]
     pub fn set_mStrokeWidthFromObject(&mut self, val: bool) {
-        self._bitfield_2 &= !(256usize as u16);
-        self._bitfield_2 |= ((val as u8 as u16) << 8u32) & (256usize as u16);
+        self._bitfield_2 &= !(256u64 as u16);
+        self._bitfield_2 |= ((val as u8 as u16) << 8u32) & (256u64 as u16);
     }
 }

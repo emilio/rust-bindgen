@@ -751,58 +751,75 @@ impl<'a> Bitfield<'a> {
         let mut offset = 0;
         for field in self.fields {
             let width = field.bitfield().unwrap();
-            let field_name = field.name()
-                .map(ToOwned::to_owned)
-                .unwrap_or_else(|| format!("at_offset_{}", offset));
 
-            let field_item = ctx.resolve_item(field.ty());
-            let field_ty_layout = field_item.kind()
-                .expect_type()
-                .layout(ctx)
-                .expect("Bitfield without layout? Gah!");
-
-            let field_type = field_item.to_rust_ty(ctx);
-            let int_type = BlobTyBuilder::new(field_ty_layout).build();
-
-            let getter_name = ctx.rust_ident(&field_name);
-            let setter_name = ctx.ext_cx()
-                .ident_of(&format!("set_{}", &field_name));
-            let mask = ((1usize << width) - 1) << offset;
-            let prefix = ctx.trait_prefix();
-            // The transmute is unfortunate, but it's needed for enums in
-            // bitfields.
-            let item = quote_item!(ctx.ext_cx(),
-                impl X {
-                    #[inline]
-                    pub fn $getter_name(&self) -> $field_type {
-                        unsafe {
-                            ::$prefix::mem::transmute(
-                                (
-                                    (self.$field_ident &
-                                        ($mask as $bitfield_type))
-                                     >> $offset
-                                ) as $int_type
-                            )
-                        }
-                    }
-
-                    #[inline]
-                    pub fn $setter_name(&mut self, val: $field_type) {
-                        self.$field_ident &= !($mask as $bitfield_type);
-                        self.$field_ident |=
-                            (val as $int_type as $bitfield_type << $offset) &
-                                ($mask as $bitfield_type);
-                    }
-                }
-            )
-                .unwrap();
-
-            let items = match item.unwrap().node {
-                ast::ItemKind::Impl(_, _, _, _, _, items) => items,
-                _ => unreachable!(),
+            let mask = match 1u64.overflowing_shl(width) {
+                (_, true) => None,
+                (mask, false) => Some(mask - 1),
             };
 
-            methods.extend(items.into_iter());
+            let mask = mask.and_then(|mask| {
+                match mask.overflowing_shl(offset) {
+                    (_, true) => None,
+                    (mask, false) => Some(mask),
+                }
+            });
+
+            let prefix = ctx.trait_prefix();
+
+            // The transmute is unfortunate, but it's needed for enums in
+            // bitfields.
+            if let Some(mask) = mask {
+                let field_name = field.name()
+                    .map(ToOwned::to_owned)
+                    .unwrap_or_else(|| format!("at_offset_{}", offset));
+
+                let field_item = ctx.resolve_item(field.ty());
+                let field_ty_layout = field_item.kind()
+                    .expect_type()
+                    .layout(ctx)
+                    .expect("Bitfield without layout? Gah!");
+
+                let field_type = field_item.to_rust_ty(ctx);
+                let int_type = BlobTyBuilder::new(field_ty_layout).build();
+
+                let getter_name = ctx.rust_ident(&field_name);
+                let setter_name = ctx.ext_cx()
+                    .ident_of(&format!("set_{}", &field_name));
+
+                let item = quote_item!(ctx.ext_cx(),
+                    impl X {
+                        #[inline]
+                        pub fn $getter_name(&self) -> $field_type {
+                            unsafe {
+                                ::$prefix::mem::transmute(
+                                    (
+                                        (self.$field_ident &
+                                            ($mask as $bitfield_type))
+                                         >> $offset
+                                    ) as $int_type
+                                )
+                            }
+                        }
+
+                        #[inline]
+                        pub fn $setter_name(&mut self, val: $field_type) {
+                            self.$field_ident &= !($mask as $bitfield_type);
+                            self.$field_ident |=
+                                (val as $int_type as $bitfield_type << $offset) &
+                                    ($mask as $bitfield_type);
+                        }
+                    }
+                )
+                    .unwrap();
+
+                let items = match item.unwrap().node {
+                    ast::ItemKind::Impl(_, _, _, _, _, items) => items,
+                    _ => unreachable!(),
+                };
+
+                methods.extend(items.into_iter());
+            }
+
             offset += width;
         }
     }

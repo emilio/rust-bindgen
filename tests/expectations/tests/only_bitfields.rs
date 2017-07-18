@@ -21,25 +21,25 @@ impl C {
     #[inline]
     pub fn a(&self) -> bool {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (1usize as u8)) >>
-                                       0u32) as u8)
+            ::std::mem::transmute(((self._bitfield_1 & (1u64 as u8)) >> 0u32)
+                                      as u8)
         }
     }
     #[inline]
     pub fn set_a(&mut self, val: bool) {
-        self._bitfield_1 &= !(1usize as u8);
-        self._bitfield_1 |= ((val as u8 as u8) << 0u32) & (1usize as u8);
+        self._bitfield_1 &= !(1u64 as u8);
+        self._bitfield_1 |= ((val as u8 as u8) << 0u32) & (1u64 as u8);
     }
     #[inline]
     pub fn b(&self) -> bool {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (254usize as u8)) >>
+            ::std::mem::transmute(((self._bitfield_1 & (254u64 as u8)) >>
                                        1u32) as u8)
         }
     }
     #[inline]
     pub fn set_b(&mut self, val: bool) {
-        self._bitfield_1 &= !(254usize as u8);
-        self._bitfield_1 |= ((val as u8 as u8) << 1u32) & (254usize as u8);
+        self._bitfield_1 &= !(254u64 as u8);
+        self._bitfield_1 |= ((val as u8 as u8) << 1u32) & (254u64 as u8);
     }
 }

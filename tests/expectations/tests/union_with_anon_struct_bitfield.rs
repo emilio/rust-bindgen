@@ -52,28 +52,27 @@ impl foo__bindgen_ty_1 {
     #[inline]
     pub fn b(&self) -> ::std::os::raw::c_int {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 & (127usize as u32)) >>
+            ::std::mem::transmute(((self._bitfield_1 & (127u64 as u32)) >>
                                        0u32) as u32)
         }
     }
     #[inline]
     pub fn set_b(&mut self, val: ::std::os::raw::c_int) {
-        self._bitfield_1 &= !(127usize as u32);
-        self._bitfield_1 |= ((val as u32 as u32) << 0u32) & (127usize as u32);
+        self._bitfield_1 &= !(127u64 as u32);
+        self._bitfield_1 |= ((val as u32 as u32) << 0u32) & (127u64 as u32);
     }
     #[inline]
     pub fn c(&self) -> ::std::os::raw::c_int {
         unsafe {
-            ::std::mem::transmute(((self._bitfield_1 &
-                                        (4294967168usize as u32)) >> 7u32) as
-                                      u32)
+            ::std::mem::transmute(((self._bitfield_1 & (4294967168u64 as u32))
+                                       >> 7u32) as u32)
         }
     }
     #[inline]
     pub fn set_c(&mut self, val: ::std::os::raw::c_int) {
-        self._bitfield_1 &= !(4294967168usize as u32);
+        self._bitfield_1 &= !(4294967168u64 as u32);
         self._bitfield_1 |=
-            ((val as u32 as u32) << 7u32) & (4294967168usize as u32);
+            ((val as u32 as u32) << 7u32) & (4294967168u64 as u32);
     }
 }
 #[test]
