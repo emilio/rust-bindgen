@@ -1121,6 +1121,7 @@ impl Type {
                     let inner = cursor.typedef_type().expect("Not valid Type?");
                     let inner =
                         Item::from_ty_or_ref(inner, location, None, ctx);
+                    debug_assert_ne!(inner, potential_id);
                     TypeKind::Alias(inner)
                 }
                 CXType_Enum => {

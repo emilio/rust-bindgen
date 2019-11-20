@@ -653,7 +653,7 @@ If you encounter an error missing from this list, please file an issue or a PR!"
     /// Get the stack of partially parsed types that we are in the middle of
     /// parsing.
     pub fn currently_parsed_types(&self) -> &[PartialType] {
-        &self.currently_parsed_types[..]
+        &self.currently_parsed_types
     }
 
     /// Begin parsing the given partial type, and push it onto the
