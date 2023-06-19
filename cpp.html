@@ -1,0 +1,394 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Generating Bindings to C++ - The bindgen User Guide</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="`bindgen` automatically generates Rust FFI bindings to C and C++ libraries.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="requirements.html"><strong aria-hidden="true">2.</strong> Requirements</a></li><li class="chapter-item expanded "><a href="library-usage.html"><strong aria-hidden="true">3.</strong> Library Usage with build.rs</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tutorial-0.html"><strong aria-hidden="true">3.1.</strong> Tutorial</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tutorial-1.html"><strong aria-hidden="true">3.1.1.</strong> Add bindgen as a Build Dependency</a></li><li class="chapter-item expanded "><a href="tutorial-2.html"><strong aria-hidden="true">3.1.2.</strong> Create a wrapper.h Header</a></li><li class="chapter-item expanded "><a href="tutorial-3.html"><strong aria-hidden="true">3.1.3.</strong> Create a build.rs File</a></li><li class="chapter-item expanded "><a href="tutorial-4.html"><strong aria-hidden="true">3.1.4.</strong> Include the Generated Bindings in src/lib.rs</a></li><li class="chapter-item expanded "><a href="tutorial-5.html"><strong aria-hidden="true">3.1.5.</strong> Write a Sanity Test</a></li><li class="chapter-item expanded "><a href="tutorial-6.html"><strong aria-hidden="true">3.1.6.</strong> Publish Your Crate!</a></li></ol></li><li class="chapter-item expanded "><a href="non-system-libraries.html"><strong aria-hidden="true">3.2.</strong> Bindings for non-system libraries</a></li></ol></li><li class="chapter-item expanded "><a href="command-line-usage.html"><strong aria-hidden="true">4.</strong> Command Line Usage</a></li><li class="chapter-item expanded "><a href="customizing-generated-bindings.html"><strong aria-hidden="true">5.</strong> Customizing the Generated Bindings</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="allowlisting.html"><strong aria-hidden="true">5.1.</strong> Allowlisting</a></li><li class="chapter-item expanded "><a href="blocklisting.html"><strong aria-hidden="true">5.2.</strong> Blocklisting</a></li><li class="chapter-item expanded "><a href="opaque.html"><strong aria-hidden="true">5.3.</strong> Treating a Type as an Opaque Blob of Bytes</a></li><li class="chapter-item expanded "><a href="replacing-types.html"><strong aria-hidden="true">5.4.</strong> Replacing One Type with Another</a></li><li class="chapter-item expanded "><a href="nocopy.html"><strong aria-hidden="true">5.5.</strong> Preventing the Derivation of Copy and Clone</a></li><li class="chapter-item expanded "><a href="nodebug.html"><strong aria-hidden="true">5.6.</strong> Preventing the Derivation of Debug</a></li><li class="chapter-item expanded "><a href="nodefault.html"><strong aria-hidden="true">5.7.</strong> Preventing the Derivation of Default</a></li><li class="chapter-item expanded "><a href="must-use-types.html"><strong aria-hidden="true">5.8.</strong> Annotating types with #[must-use]</a></li><li class="chapter-item expanded "><a href="visibility.html"><strong aria-hidden="true">5.9.</strong> Field visibility</a></li><li class="chapter-item expanded "><a href="code-formatting.html"><strong aria-hidden="true">5.10.</strong> Code formatting</a></li></ol></li><li class="chapter-item expanded "><a href="cpp.html" class="active"><strong aria-hidden="true">6.</strong> Generating Bindings to C++</a></li><li class="chapter-item expanded "><a href="objc.html"><strong aria-hidden="true">7.</strong> Generating Bindings to Objective-c</a></li><li class="chapter-item expanded "><a href="using-unions.html"><strong aria-hidden="true">8.</strong> Using Unions</a></li><li class="chapter-item expanded "><a href="using-bitfields.html"><strong aria-hidden="true">9.</strong> Using Bitfields</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">10.</strong> FAQ</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">The bindgen User Guide</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                        <a href="https://github.com/rust-lang/rust-bindgen" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#generating-bindings-to-c" id="generating-bindings-to-c">Generating Bindings to C++</a></h1>
+<p><code>bindgen</code> can handle some C++ features, but not all of them. To set
+expectations: <code>bindgen</code> will give you the type definitions and FFI declarations
+you need to build an API to the C++ library, but using those types in Rust will
+be nowhere near as nice as using them in C++. You will have to manually call
+constructors, destructors, overloaded operators, etc yourself.</p>
+<p>When passing in header files, the file will automatically be treated as C++ if
+it ends in <code>.hpp</code>. If it doesn't, adding <code>-x c++</code> clang args can be used to
+force C++ mode. You probably also want to use <code>-std=c++14</code> or similar clang args
+as well.</p>
+<p>You pretty much <strong>must</strong> use <a href="./allowlisting.html">allowlisting</a> when working
+with C++ to avoid pulling in all of the <code>std::.*</code> types, many of which <code>bindgen</code>
+cannot handle. Additionally, you may want to mark other types as
+<a href="./opaque.html">opaque</a> that <code>bindgen</code> stumbles on. It is recommended to mark
+all of <code>std::.*</code> opaque, and to allowlist only precisely the functions and types
+you intend to use.</p>
+<p>You should read up on the <a href="./faq.html">FAQs</a> as well.</p>
+<h2><a class="header" href="#supported-features" id="supported-features">Supported Features</a></h2>
+<ul>
+<li>
+<p>Inheritance (for the most part; there are
+<a href="https://github.com/rust-lang/rust-bindgen/issues/380">some outstanding bugs</a>)</p>
+</li>
+<li>
+<p>Methods</p>
+</li>
+<li>
+<p>Bindings to constructors and destructors (but they aren't implicitly or
+automatically invoked)</p>
+</li>
+<li>
+<p>Function and method overloading</p>
+</li>
+<li>
+<p>Templates <em>without</em> specialization. You should be able to access individual
+fields of the class or struct.</p>
+</li>
+</ul>
+<h2><a class="header" href="#unsupported-features" id="unsupported-features">Unsupported Features</a></h2>
+<p>When <code>bindgen</code> finds a type that is too difficult or impossible to translate
+into Rust, it will automatically treat it as an opaque blob of bytes. The
+philosophy is that</p>
+<ol>
+<li>
+<p>we should always get layout, size, and alignment correct, and</p>
+</li>
+<li>
+<p>just because one type uses specialization, that shouldn't cause <code>bindgen</code> to
+give up on everything else.</p>
+</li>
+</ol>
+<p>Without further ado, here are C++ features that <code>bindgen</code> does not support or
+cannot translate into Rust:</p>
+<ul>
+<li>
+<p>Inline functions and methods: see
+<a href="./faq.html#why-isnt-bindgen-generating-bindings-to-inline-functions">&quot;Why isn't <code>bindgen</code> generating bindings to inline functions?&quot;</a></p>
+</li>
+<li>
+<p>Template functions, methods of template classes and structs. We don't know
+which monomorphizations exist, and can't create new ones because we aren't a
+C++ compiler.</p>
+</li>
+<li>
+<p>Anything related to template specialization:</p>
+<ul>
+<li>Partial template specialization</li>
+<li>Traits templates</li>
+<li>Substitution Failure Is Not An Error (SFINAE)</li>
+</ul>
+</li>
+<li>
+<p>Cross language inheritance, for example inheriting from a Rust struct in C++.</p>
+</li>
+<li>
+<p>Automatically calling copy and/or move constructors or destructors. Supporting
+this isn't possible with Rust's move semantics.</p>
+</li>
+<li>
+<p>Exceptions: if a function called through a <code>bindgen</code>-generated interface
+raises an exception that is not caught by the function itself, this will
+generate undefined behaviour. See
+<a href="https://github.com/rust-lang/rust-bindgen/issues/1208">the tracking issue for exceptions</a>
+for more details.</p>
+</li>
+<li>
+<p>Many C++ specific aspects of calling conventions. For example in the Itanium abi types that are 
+&quot;<a href="https://itanium-cxx-abi.github.io/cxx-abi/abi.html#non-trivial">non trivial for the purposes of calls</a>&quot; 
+should be passed by pointer, even if they are otherwise eligable to be passed in a register.
+Similarly in both the Itanium and MSVC ABIs such types are returned by &quot;hidden parameter&quot;, much like
+large structs in C that would not fit into a register. This also applies to types with any base classes
+in the MSVC ABI (see <a href="https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170#return-values">x64 calling convention</a>).
+Because bindgen does not know about these rules generated interfaces using such types are currently invalid.</p>
+</li>
+</ul>
+<h2><a class="header" href="#constructor-semantics" id="constructor-semantics">Constructor semantics</a></h2>
+<p><code>bindgen</code> will generate a wrapper for any class constructor declared in the
+input headers. For example, this headers file</p>
+<pre><code class="language-c++">class MyClass {
+    public:
+	MyClass();
+        void method();
+};
+</code></pre>
+<p>Will produce the following code:</p>
+<pre><code class="language-rust ignore">#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct MyClass {
+    pub _address: u8,
+}
+extern &quot;C&quot; {
+    #[link_name = &quot;\u{1}_ZN7MyClass6methodEv&quot;]
+    pub fn MyClass_method(this: *mut MyClass);
+}
+extern &quot;C&quot; {
+    #[link_name = &quot;\u{1}_ZN7MyClassC1Ev&quot;]
+    pub fn MyClass_MyClass(this: *mut MyClass);
+}
+impl MyClass {
+    #[inline]
+    pub unsafe fn method(&amp;mut self) {
+        MyClass_method(self)
+    }
+    #[inline]
+    pub unsafe fn new() -&gt; Self {
+        let mut __bindgen_tmp = ::std::mem::MaybeUninit::uninit();
+        MyClass_MyClass(__bindgen_tmp.as_mut_ptr());
+        __bindgen_tmp.assume_init()
+    }
+}
+</code></pre>
+<p>This <code>MyClass::new</code> Rust method can be used as a substitute for the <code>MyClass</code>
+C++ constructor. However, the address of the value from inside the method will
+be different than from the outside. This is because the <code>__bindgen_tmp</code> value
+is moved when the <code>MyClass::new</code> method returns.</p>
+<p>In contrast, the C++ constructor will not move the value, meaning that the
+address of the value will be the same inside and outside the constructor.
+If the original C++ relies on this semantic difference somehow, you should use the
+<code>MyClass_MyClass</code> binding directly instead of the <code>MyClass::new</code> method.</p>
+<p>In other words, the Rust equivalent for the following C++ code</p>
+<pre><code class="language-c++">MyClass instance = MyClass();
+instance.method();
+</code></pre>
+<p>is not this</p>
+<pre><code class="language-rust ignore">let instance = MyClass::new();
+instance.method();
+</code></pre>
+<p>but this</p>
+<pre><code class="language-rust ignore">let instance = std::mem::MaybeUninit::&lt;MyClass&gt;::uninit();
+MyClass_MyClass(instance.as_mut_ptr());
+instance.assume_init_mut().method();
+</code></pre>
+<p>You can easily verify this fact if you provide a implementation for <code>MyClass</code>
+and <code>method</code> that prints the the <code>this</code> pointer address. However, you can
+ignore this fact if you know that the original C++ code does not rely on the
+instance address in its internal logic.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="code-formatting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="objc.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="code-formatting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="objc.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
